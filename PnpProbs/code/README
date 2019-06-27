@@ -1,0 +1,65 @@
+Alter PNPProbs (2019)
+
+-----------------------------------------------------------------
+This program is modified from PnpProbs by M.M. Kuang (mmkuang@cs.hku.hk).
+PNPProbs is an open source program to align multiple sequences 
+combining progressive and non-progressive alignment approaches.
+The program is developed by Yongtao Ye (ytye@cs.hku.hk)  
+using open source codes of GLProbs (written by Y. Ye) 
+and PicXAA (written by S. Mohammad Ebrahim Sahraeian and Byung-Jun Yoon).
+-----------------------------------------------------------------
+
+Install:
+
+You will need a Unix environment with a working C++ compiler to
+compile the Alter PNPProbs source and just type: 
+
+$ make
+
+If you want to clean the compiled results, you may type:
+
+$ make clean
+
+-----------------------------------------------------------------
+Usage:
+       alter_pnpprobs [infile] ...[OPTION]...
+
+Description:
+       Align sequences in multi-FASTA format
+
+       -o, --outfile <string>
+              specify the output file name (STDOUT by default)
+	
+       -p, --program <string>
+              choose progressive or no-progressive alignment parts (progressive by default)
+
+       -clustalw
+              use CLUSTALW output format instead of FASTA format
+
+       -c, --consistency REPS
+              use 0 <= REPS <= 5 (default: 2) passes of consistency transformation
+
+       -ir, --iterative-refinement REPS
+              use 0 <= REPS <= 1000 (default: 100) passes of iterative-refinement
+
+       -v, --verbose
+              report progress while aligning (default: off)
+
+       -timeon, -timeoff
+              report program running times of each step (default:on)
+
+       -annot FILENAME
+              write annotation for multiple alignment to FILENAME
+
+       -a, --alignment-order
+              print sequences in alignment order rather than input order (default: off)
+
+       -version 
+              print out version of GLProbs 
+-----------------------------------------------------------------
+
+
+Typical used example:
+./alter_pnpprobs infile -p 0 > outfile or ./pnpprobs infile -p 1 -o outfile
+N.B. The alignments are printed out into file "outfile" in FASTA format
+
