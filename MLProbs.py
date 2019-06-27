@@ -25,8 +25,8 @@ tmp_tail_path = "./tmp/tail_ret.seq"
 calc_col_score_prefix = " ./tmp/calc_col_score/ -d "
 dir_output = "./tmp/seperate_regions/"
 col_score = "./tmp/calc_col_score/_col_col.scr"
-sigma = 0.7
-beta = 0.2
+sigma = 0.3
+beta = 0
 theta = 0.4
 threshold = 0.8
 output_file = "result.msa"
@@ -147,8 +147,8 @@ def Refresh():
 
 def seperateRegions(seq_file, col_score, sigma, beta):
     global killed_stage
-    if not (os.path.exists("./tmp/alternative_msa/1.msa") and os.path.exists("./tmp/alternative_msa/2.msa") and os.path.exists("./tmp/alternative_msa/3.msa")):
-        killed_stage = 3
+    # if not (os.path.exists("./tmp/alternative_msa/1.msa") and os.path.exists("./tmp/alternative_msa/2.msa") and os.path.exists("./tmp/alternative_msa/3.msa")):
+    #     killed_stage = 3
     if killed_stage != 2:
         if killed_stage != 3:
             if not os.path.exists(col_score):
