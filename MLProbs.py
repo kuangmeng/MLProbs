@@ -14,6 +14,7 @@ from postprocessing_msa_file import processingHead_MSA
 from postprocessing_msa_file import reverseTail_MSA
 from Detect_Unreliable_Regions import detect_unreliable_regions
 from get_TC_SP import getTC_SP
+quickprobs = "./realign/quickprobs "
 qscore = "./qscore/qscore "
 pnp_getpid_path = "./PnpProbs/alter_pnpprobs -G "
 pnp_getmsa_path = "./PnpProbs/alter_pnpprobs -p "
@@ -166,7 +167,9 @@ def seperateRegions(seq_file, col_score, sigma, beta):
             killed_stage = 4
     else:
         killed_stage = 4
-        Align_ClustalW2(seq_file)
+        #Align_ClustalW2(seq_file)
+        os.system(quickprobs + " " + seq_file + " > " + output_file)
+
 
 def Align_ClustalW2(seq_file):
     print("Using ClustalW2 to continue MSA process ...")
@@ -252,7 +255,7 @@ if __name__ == "__main__":
     seperateRegions(seq_file, col_score, sigma, beta)
     if killed_stage != 4:
         print("Realign !!!")
-        do_Realign_Dir(dir_output, class_, pnp_getmsa_path)
+        do_Realign_Dir(dir_output, class_, quickprobs)
         print("Combination !!!")
         Combination_Files(seq_file, dir_output, output_file)
         #CheckFile(output_file, class_)
@@ -263,12 +266,15 @@ if __name__ == "__main__":
             Move(real_output, output_file)
         else:
             if not os.path.exists(output_file):
-                Align_ClustalW2(seq_file)
+                #Align_ClustalW2(seq_file)
+                os.system(quickprobs + " " + seq_file + " > " + output_file)
             else:
                 if not os.path.getsize(output_file):
-                    Align_ClustalW2(seq_file)
+                    #Align_ClustalW2(seq_file)
+                    os.system(quickprobs + " " + seq_file + " > " + output_file)
     killed_stage = 0
     #Move(real_output, output_file)
     if not os.path.getsize(output_file):
         print("Result is Empty ?")
-        Align_ClustalW2(seq_file)
+        #Align_ClustalW2(seq_file)
+        os.system(quickprobs + " " + seq_file + " > " + output_file)

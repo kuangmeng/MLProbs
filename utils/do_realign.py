@@ -7,6 +7,7 @@ Created on Sat Jun 22 18:49:18 2019
 """
 import os
 from Detect_Unreliable_Family import Align_ClustalW2
+tmp_file = "./tmp/realign.txt"
 
 def Realign_file_list(dir_output):
     file_list = os.listdir(dir_output)
@@ -16,19 +17,46 @@ def Realign_file_list(dir_output):
             realign_file_list.append(dir_output + file)
     return realign_file_list
 
-def do_Realign(class_, pnp_path, realign_file):
+def perprocess(real_output, real_out):
+    filein = open(real_output, 'r')
+    file_context = filein.read().splitlines()
+    filein.close()
+    dic = {}
+    has_key = False
+    value = ""
+    key = ""
+    for itm in range(len(file_context)):
+        if file_context[itm][0:1] == ">":
+            if has_key == True:
+                dic[key] = value
+                value = ""
+                key = ""
+                has_key = False
+            has_key = True
+            key = file_context[itm]
+        elif has_key == True:
+            value = value.replace("\r","") + file_context[itm].replace("\r","")
+    dic[key] = value
+    dickeys = sorted(dic.keys())
+    with open(real_out, 'w') as fileout:
+        for item in dickeys:
+            fileout.write(item + "\n")
+            fileout.write(dic[item].replace("-", "").replace(".", "") + "\n")
+
+def do_Realign(class_, quick, realign_file):
     ret_name = ""
     tmp_path = realign_file.split("/")
     for i in range(len(tmp_path) - 1):
         ret_name += tmp_path[i] + "/"
     ret_name += os.path.splitext(tmp_path[len(tmp_path) - 1])[0] + ".reliable"
+    perprocess(realign_file, tmp_file)
+    #os.system(pnp_path + str(class_) + " " + realign_file + " -o " + ret_name)
+    os.system(quick + " " + tmp_file + " > " + ret_name)
 
-    os.system(pnp_path + str(class_) + " " + realign_file + " -o " + ret_name)
-
-def do_Realign_Dir(dir_output, class_, pnp_path):
+def do_Realign_Dir(dir_output, class_, quick):
     realign_file_list = Realign_file_list(dir_output)
     for file in realign_file_list:
-        do_Realign(class_, pnp_path, file)
+        do_Realign(class_, quick, file)
 
 def getFile_Len(filename):
     seq_file_lens = 0
