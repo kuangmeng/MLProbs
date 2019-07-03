@@ -27,7 +27,7 @@ calc_col_score_prefix = " ./tmp/calc_col_score/ -d "
 dir_output = "./tmp/seperate_regions/"
 col_score = "./tmp/calc_col_score/_col_col.scr"
 sigma = 0.7
-beta = -1
+beta = 0.01
 theta = 0.4
 threshold = 0.8
 output_file = "result.msa"
@@ -35,7 +35,15 @@ killed_stage = 0
 model_ = "./classifier/model/abc.joblib"
 para_ = "./classifier/model/para.txt"
 
+avg_PID = 0.0
+len_seqs = 0
+un_sp = 0.0
+sd_PID = 0.0
+len_family = 0
+
 def getPID(seq_file):
+    global avg_PID
+    global sd_PID
     global killed_stage
     os.system(pnp_getpid_path + seq_file)
     ret_list = []
@@ -55,6 +63,8 @@ def getPID(seq_file):
     with open(pid_path, 'r') as filein:
         file_context = filein.read().splitlines()[0]
         tmp_list = file_context.split("\t")
+        avg_PID = float(tmp_list[0])
+        sd_PID = float(tmp_list[1])
         for i in range(len(tmp_list)):
             if para[i * 2] - para[i * 2 + 1] > 0:
                 ret_list.append((float(tmp_list[i]) - para[i * 2 + 1]) / (para[i * 2] - para[i * 2 + 1]))
@@ -242,6 +252,28 @@ def CheckFile(output_file, class_):
 def Move(file_in, file_out):
     os.system("cp "+ file_in + " " + file_out)
 
+def getLengthSeq(output_file):
+    filein = open(output_file, 'r')
+    file_context = filein.read().splitlines()
+    filein.close()
+    has_key = False
+    dic ={}
+    value = ""
+    key = ""
+    for itm in range(len(file_context)):
+        if file_context[itm][0:1] == ">":
+            if has_key == True:
+                dic[key] = value
+                has_key = False
+                value = ""
+                key = ""
+            has_key = True
+            key = file_context[itm]
+        elif has_key == True:
+            value = value.replace("\r","") + file_context[itm].replace("\r","")
+    dic[key] = value
+    return len(value), len(dic.keys())
+
 if __name__ == "__main__":
     Refresh()
     seq_file = sys.argv[1]
@@ -251,7 +283,9 @@ if __name__ == "__main__":
     class_ = TestClassifier(test_list)
     getMSA(class_, seq_file)
     # getAlternativeMSA(class_, seq_file)
-    detect_unreliable_regions(real_output, col_score)
+
+    un_sp, len_seqs, len_family = detect_unreliable_regions(real_output, col_score)
+
     seperateRegions(seq_file, col_score, sigma, beta)
     if killed_stage != 4:
         print("Realign !!!")
@@ -273,8 +307,20 @@ if __name__ == "__main__":
                     #Align_ClustalW2(seq_file)
                     os.system(quickprobs + " " + seq_file + " > " + output_file)
     killed_stage = 0
+
     #Move(real_output, output_file)
     if not os.path.getsize(output_file):
         print("Result is Empty ?")
         #Align_ClustalW2(seq_file)
         os.system(quickprobs + " " + seq_file + " > " + output_file)
+    if len_seqs == 0:
+        len_seqs, len_family = getLengthSeq(output_file)
+
+    file_write = open("./tmp/train_write.txt", 'w')
+    file_write.write(seq_file + "\t")
+    file_write.write(str(len_seqs) + "\t")
+    file_write.write(str(len_family) + "\t")
+    file_write.write(str(avg_PID) + "\t")
+    file_write.write(str(sd_PID) + "\t")
+    file_write.write(str(un_sp) + "\n")
+    file_write.close()

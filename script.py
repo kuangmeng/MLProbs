@@ -32,7 +32,7 @@ def Run(prom, bench, file, path):
     Preprocessing(bench, file, path)
     f_t = os.path.exists("./output/" + bench)
     if not f_t:
-        os.makedirs("./output/" + bench)    
+        os.makedirs("./output/" + bench)
     os.system("%s %s/%s/%s ./output/%s/%s" % (prom, path, bench, file, bench, file))
 
 def Compute(prom):
@@ -47,42 +47,27 @@ def Compute(prom):
             file_num = 0
             file_list = os.listdir(path + "/" + bench)
             for fileidx in range(len(file_list)):
+                tmp_str = ""
                 if file_list[fileidx][0:1] == ".":
                     continue
                 file_num += 1
                 print("开始处理%d号文件: %s ..." % (fileidx, bench + "/" + file_list[fileidx]))
                 start = time.time()
                 Run(prom, bench, file_list[fileidx], path)
+                file_write = open("train_write.txt", 'a')
+                with open("./tmp/train_write.txt", 'r') as filein:
+                    tmp_str = filein.read().splitlines()[0]
+
                 end = time.time()
                 tmp_time += (end - start)
                 print("完成处理%d号文件！" % (fileidx))
+                file_write.write(tmp_str + "\n")
+                file_write.close()
             total_time.append(tmp_time / float(file_num))
+
     return tmp_bench, total_time
-    
+
 if __name__ == "__main__":
     tmp_bench, total_time = Compute("python MLProbs.py ")
     for i in range(len(tmp_bench)):
         print("%s: %f" % (tmp_bench[i], total_time[i]))
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

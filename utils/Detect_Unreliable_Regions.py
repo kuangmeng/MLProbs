@@ -10,7 +10,7 @@ tmp_str = "ARNDCQEGHILKMFPSTWYV"
 matrix = []
 
 def getMatrix():
-    
+
     matrix.append([4, -1, -2, -2, 0, -1, -1, 0, -2, -1, -1, -1, -1, -2, -1, 1, 0, -3, -2, 0])
     matrix.append([-1, 5, 0, -2, -3, 1, 0, -2, 0, -3, -2, 2, -1, -3, -2, -1, -1, -3, -2, -3])
     matrix.append([-2, 0, 6, 1, -3, 0, 0, 0, 1, -3, -3, 0, -2, -3, -2, 1, 0, -4, -2, -3])
@@ -78,6 +78,7 @@ def detect_unreliable_regions(real_pnp, col_score):
     dickeys =sorted(dic.keys())
     lens_ = (len(dickeys) * (len(dickeys) - 1)) / 2
     lens = len(value)
+    tmp_un_sp = 0.0
     fileout = open(col_score, 'w')
     fileout.write("#COL\t#COL_Score\n")
     for i in range(lens):
@@ -89,10 +90,14 @@ def detect_unreliable_regions(real_pnp, col_score):
                 else:
                     tmp_score += float(matrix[getIdx(dic[dickeys[k1]][i])][getIdx(dic[dickeys[k2]][i])])
         tmp_score /= lens_
+        tmp_un_sp += tmp_score
         fileout.write(str(i + 1) + "\t" + str(tmp_score) + "\n")
     fileout.write("#END\n")
     fileout.close()
     print("Calculated Column Score!")
+    if lens == 0:
+        return 0, 0, len(dickeys)
+    return tmp_un_sp / lens, lens, len(dickeys)
 
 def getIdx(char):
     for i in range(len(tmp_str)):
