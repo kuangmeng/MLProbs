@@ -7,9 +7,15 @@ Created on Sat Jun 22 16:54:37 2019
 """
 import os
 from Detect_Unreliable_Family import Detect_Unreliable
-def getUnreliableRegions(sigma, beta, theta, threshold, col_score, seq_file, real_output):
+def getUnreliableRegions(sigma, beta, theta, threshold, col_score, seq_file, real_output, class_lens):
     # if Detect_Unreliable(theta, threshold, col_score, seq_file, real_output):
     #     return []
+    lens_seq_4_devide = 15
+    if int(class_lens) == 1:
+        lens_seq_4_devide = 10
+    elif int(class_lens) == 0:
+        lens_seq_4_devide =0
+    print("Length for Devide is: %d"%(lens_seq_4_devide))
     last_col = 0
     num_score = []
     with open(col_score, 'r') as filein:
@@ -30,13 +36,13 @@ def getUnreliableRegions(sigma, beta, theta, threshold, col_score, seq_file, rea
         elif float(item[1]) <= sigma and float(item[1]) >= beta and tmp_1 == 1 and tmp_2 == 1:
             if item[0] == last_col:
                 #if (int(last_col) > 300 and int(item[0]) - int(tmp_head) > 15) or (int(last_col) < 300 and int(item[0]) - int(tmp_head) > 10):
-                if int(item[0]) - int(tmp_head) > 15:
+                if int(item[0]) - int(tmp_head) > lens_seq_4_devide:
                     unreliable_regions.append([int(tmp_head), int(item[0]) - 1])
             else:
                 continue
         elif (float(item[1]) > sigma or float(item[1]) < beta) and tmp_1 == 1 and tmp_2 == 1:
             #if (int(last_col) > 300 and int(item[0]) - int(tmp_head) > 15) or (int(last_col) < 300 and int(item[0]) - int(tmp_head) > 10):
-            if int(item[0]) - int(tmp_head) > 15:
+            if int(item[0]) - int(tmp_head) > lens_seq_4_devide:
                 unreliable_regions.append([int(tmp_head), int(item[0]) - 1])
             tmp_1 = 0
             tmp_2 = 0

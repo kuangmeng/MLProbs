@@ -32,8 +32,11 @@ theta = 0.4
 threshold = 0.8
 output_file = "result.msa"
 killed_stage = 0
-model_ = "./classifier/model/abc.joblib"
-para_ = "./classifier/model/para.txt"
+model_ = "./classifier/model/branch/abc.joblib"
+para_ = "./classifier/model/branch/para.txt"
+
+model_lens = "./classifier/model/seq_lens/abc.joblib"
+para_lens = "./classifier/model/seq_lens/para.txt"
 
 avg_PID = 0.0
 len_seqs = 0
@@ -156,7 +159,7 @@ def Refresh():
     os.system("mkdir ./tmp/alternative_msa")
     os.system("mkdir ./tmp/seperate_regions")
 
-def seperateRegions(seq_file, col_score, sigma, beta):
+def seperateRegions(seq_file, col_score, sigma, beta, class_lens):
     global killed_stage
     # if not (os.path.exists("./tmp/alternative_msa/1.msa") and os.path.exists("./tmp/alternative_msa/2.msa") and os.path.exists("./tmp/alternative_msa/3.msa")):
     #     killed_stage = 3
@@ -170,7 +173,7 @@ def seperateRegions(seq_file, col_score, sigma, beta):
                     killed_stage = 4
                     return
             print("Seperating Regions...")
-            unreliable_regions = getUnreliableRegions(sigma, beta, theta, threshold, col_score, seq_file, real_output)
+            unreliable_regions = getUnreliableRegions(sigma, beta, theta, threshold, col_score, seq_file, real_output, class_lens)
             seperateUnreliableRegions(unreliable_regions, real_output, dir_output)
             print("Seperated Regions.")
         else:
@@ -180,99 +183,117 @@ def seperateRegions(seq_file, col_score, sigma, beta):
         #Align_ClustalW2(seq_file)
         os.system(quickprobs + " " + seq_file + " > " + output_file)
 
-
-def Align_ClustalW2(seq_file):
-    print("Using ClustalW2 to continue MSA process ...")
-    if os.path.exists("./tmp/clustalw"):
-        os.system("rm -rf ./tmp/clustalw")
-    clustalw2 = "./clustalw/clustalw2 "
-    os.system("mkdir ./tmp/clustalw")
-    os.system("cp " + seq_file + " ./tmp/clustalw/tmp.seq")
-    os.system(clustalw2 + " ./tmp/clustalw/tmp.seq > ./tmp/clustalw/tmp.log")
-    tmp_file_in = "./tmp/clustalw/tmp.aln"
-
-    if not os.path.exists(tmp_file_in):
-        Move(seq_file, output_file)
-    else:
-        if not os.path.getsize(tmp_file_in):
-            Move(seq_file, output_file)
-        else:
-            tmp_file_out = "./tmp/clustalw/tmp.msa"
-            Calc_FASTA(tmp_file_in, tmp_file_out)
-            Move(tmp_file_out, output_file)
-    print("ClustalW2 finished.")
-
-def Calc_FASTA(file_in, file_out):
-    dic = {}
-    with open(file_in, 'r') as filein:
-        file_context = filein.read().splitlines()
-        for item in file_context:
-            tmp_list = item.split()
-            if len(tmp_list) == 2:
-                if tmp_list[0] not in dic.keys():
-                    dic[tmp_list[0]] = tmp_list[1]
-                else:
-                    dic[tmp_list[0]] += tmp_list[1]
-
-    dickeys = sorted(dic.keys())
-    fileout = open(file_out, 'w')
-    for idx in range(len(dickeys)):
-        fileout.write(">" + dickeys[idx] + "\n")
-        fileout.write(dic[dickeys[idx]] + "\n")
-    fileout.close()
-
-def CheckFile(output_file, class_):
-    need_remake = False
-    dic = {}
-    has_key = False
-    value = ""
-    key = ""
-    filein = open(output_file, 'r')
-    file_context = filein.read().splitlines()
-    filein.close()
-    for itm in range(len(file_context)):
-        if file_context[itm][0:1] == ">":
-            if has_key == True:
-                dic[key] = value
-                value = ""
-                key = ""
-                has_key = False
-            has_key = True
-            key = file_context[itm]
-        elif has_key == True:
-            value = value.replace("\r","") + file_context[itm].replace("\r","")
-    dic[key] = value
-    dickeys = sorted(dic.keys())
-    for idx in range(len(dickeys)):
-        if len(dic[dickeys[idx]]) != len(dic[dickeys[0]]):
-            need_remake = True
-    if need_remake == True:
-        os.system(pnp_getmsa_path + str(class_) + " " + seq_file + " -o " + output_file)
+#
+# def Align_ClustalW2(seq_file):
+#     print("Using ClustalW2 to continue MSA process ...")
+#     if os.path.exists("./tmp/clustalw"):
+#         os.system("rm -rf ./tmp/clustalw")
+#     clustalw2 = "./clustalw/clustalw2 "
+#     os.system("mkdir ./tmp/clustalw")
+#     os.system("cp " + seq_file + " ./tmp/clustalw/tmp.seq")
+#     os.system(clustalw2 + " ./tmp/clustalw/tmp.seq > ./tmp/clustalw/tmp.log")
+#     tmp_file_in = "./tmp/clustalw/tmp.aln"
+#
+#     if not os.path.exists(tmp_file_in):
+#         Move(seq_file, output_file)
+#     else:
+#         if not os.path.getsize(tmp_file_in):
+#             Move(seq_file, output_file)
+#         else:
+#             tmp_file_out = "./tmp/clustalw/tmp.msa"
+#             Calc_FASTA(tmp_file_in, tmp_file_out)
+#             Move(tmp_file_out, output_file)
+#     print("ClustalW2 finished.")
+#
+# def Calc_FASTA(file_in, file_out):
+#     dic = {}
+#     with open(file_in, 'r') as filein:
+#         file_context = filein.read().splitlines()
+#         for item in file_context:
+#             tmp_list = item.split()
+#             if len(tmp_list) == 2:
+#                 if tmp_list[0] not in dic.keys():
+#                     dic[tmp_list[0]] = tmp_list[1]
+#                 else:
+#                     dic[tmp_list[0]] += tmp_list[1]
+#
+#     dickeys = sorted(dic.keys())
+#     fileout = open(file_out, 'w')
+#     for idx in range(len(dickeys)):
+#         fileout.write(">" + dickeys[idx] + "\n")
+#         fileout.write(dic[dickeys[idx]] + "\n")
+#     fileout.close()
+#
+# def CheckFile(output_file, class_):
+#     need_remake = False
+#     dic = {}
+#     has_key = False
+#     value = ""
+#     key = ""
+#     filein = open(output_file, 'r')
+#     file_context = filein.read().splitlines()
+#     filein.close()
+#     for itm in range(len(file_context)):
+#         if file_context[itm][0:1] == ">":
+#             if has_key == True:
+#                 dic[key] = value
+#                 value = ""
+#                 key = ""
+#                 has_key = False
+#             has_key = True
+#             key = file_context[itm]
+#         elif has_key == True:
+#             value = value.replace("\r","") + file_context[itm].replace("\r","")
+#     dic[key] = value
+#     dickeys = sorted(dic.keys())
+#     for idx in range(len(dickeys)):
+#         if len(dic[dickeys[idx]]) != len(dic[dickeys[0]]):
+#             need_remake = True
+#     if need_remake == True:
+#         os.system(pnp_getmsa_path + str(class_) + " " + seq_file + " -o " + output_file)
 
 def Move(file_in, file_out):
     os.system("cp "+ file_in + " " + file_out)
+#
+# def getLengthSeq(output_file):
+#     filein = open(output_file, 'r')
+#     file_context = filein.read().splitlines()
+#     filein.close()
+#     has_key = False
+#     dic ={}
+#     value = ""
+#     key = ""
+#     for itm in range(len(file_context)):
+#         if file_context[itm][0:1] == ">":
+#             if has_key == True:
+#                 dic[key] = value
+#                 has_key = False
+#                 value = ""
+#                 key = ""
+#             has_key = True
+#             key = file_context[itm]
+#         elif has_key == True:
+#             value = value.replace("\r","") + file_context[itm].replace("\r","")
+#     dic[key] = value
+#     return len(value), len(dic.keys())
 
-def getLengthSeq(output_file):
-    filein = open(output_file, 'r')
-    file_context = filein.read().splitlines()
-    filein.close()
-    has_key = False
-    dic ={}
-    value = ""
-    key = ""
-    for itm in range(len(file_context)):
-        if file_context[itm][0:1] == ">":
-            if has_key == True:
-                dic[key] = value
-                has_key = False
-                value = ""
-                key = ""
-            has_key = True
-            key = file_context[itm]
-        elif has_key == True:
-            value = value.replace("\r","") + file_context[itm].replace("\r","")
-    dic[key] = value
-    return len(value), len(dic.keys())
+def getRegionsLength(len_seqs, len_family, avg_PID, sd_PID, un_sp):
+    class_lens = 2
+    test = [len_seqs, len_family, avg_PID, sd_PID, un_sp]
+    para = []
+    with open(para_lens, 'r') as filein:
+        file_context = filein.read().splitlines()
+        for i in range(2 * len(test)):
+            para.append(float(file_context[i]))
+    real_test = []
+    for i in range(len(test)):
+        real_test.append((float(test[i]) - para[i * 2 + 1])/ (para[i * 2] - para[i * 2 - 1]))
+    clf = load(model_lens)
+    class_lens = clf.predict([real_test])[0]
+    if class_lens > 2 or class_lens < 0:
+        class_lens = 2
+    return class_lens
+
 
 if __name__ == "__main__":
     Refresh()
@@ -285,8 +306,8 @@ if __name__ == "__main__":
     # getAlternativeMSA(class_, seq_file)
 
     un_sp, len_seqs, len_family = detect_unreliable_regions(real_output, col_score)
-
-    seperateRegions(seq_file, col_score, sigma, beta)
+    class_lens = getRegionsLength(len_seqs, len_family, avg_PID, sd_PID, un_sp)
+    seperateRegions(seq_file, col_score, sigma, beta, class_lens)
     if killed_stage != 4:
         print("Realign !!!")
         do_Realign_Dir(dir_output, class_, quickprobs)
@@ -313,14 +334,14 @@ if __name__ == "__main__":
         print("Result is Empty ?")
         #Align_ClustalW2(seq_file)
         os.system(quickprobs + " " + seq_file + " > " + output_file)
-    if len_seqs == 0:
-        len_seqs, len_family = getLengthSeq(output_file)
-
-    file_write = open("./tmp/train_write.txt", 'w')
-    file_write.write(seq_file + "\t")
-    file_write.write(str(len_seqs) + "\t")
-    file_write.write(str(len_family) + "\t")
-    file_write.write(str(avg_PID) + "\t")
-    file_write.write(str(sd_PID) + "\t")
-    file_write.write(str(un_sp) + "\n")
-    file_write.close()
+    # if len_seqs == 0:
+    #     len_seqs, len_family = getLengthSeq(output_file)
+    #
+    # file_write = open("./tmp/train_write.txt", 'w')
+    # file_write.write(seq_file + "\t")
+    # file_write.write(str(len_seqs) + "\t")
+    # file_write.write(str(len_family) + "\t")
+    # file_write.write(str(avg_PID) + "\t")
+    # file_write.write(str(sd_PID) + "\t")
+    # file_write.write(str(un_sp) + "\n")
+    # file_write.close()
