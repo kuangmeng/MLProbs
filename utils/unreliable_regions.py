@@ -29,12 +29,14 @@ def getUnreliableRegions(sigma, beta, theta, threshold, col_score, seq_file, rea
             tmp_2 = 1
         elif float(item[1]) <= sigma and float(item[1]) >= beta and tmp_1 == 1 and tmp_2 == 1:
             if item[0] == last_col:
-                if (int(last_col) > 300 and int(item[0]) - int(tmp_head) > 15) or (int(last_col) < 300 and int(item[0]) - int(tmp_head) > 10):
+                #if (int(last_col) > 300 and int(item[0]) - int(tmp_head) > 15) or (int(last_col) < 300 and int(item[0]) - int(tmp_head) > 10):
+                if int(item[0]) - int(tmp_head) > 15:
                     unreliable_regions.append([int(tmp_head), int(item[0]) - 1])
             else:
                 continue
         elif (float(item[1]) > sigma or float(item[1]) < beta) and tmp_1 == 1 and tmp_2 == 1:
-            if (int(last_col) > 300 and int(item[0]) - int(tmp_head) > 15) or (int(last_col) < 300 and int(item[0]) - int(tmp_head) > 10):
+            #if (int(last_col) > 300 and int(item[0]) - int(tmp_head) > 15) or (int(last_col) < 300 and int(item[0]) - int(tmp_head) > 10):
+            if int(item[0]) - int(tmp_head) > 15:
                 unreliable_regions.append([int(tmp_head), int(item[0]) - 1])
             tmp_1 = 0
             tmp_2 = 0
