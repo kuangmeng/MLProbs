@@ -35,7 +35,7 @@ killed_stage = 0
 model_ = "./classifier/model/branch/abc.joblib"
 para_ = "./classifier/model/branch/para.txt"
 
-model_lens = "./classifier/model/seq_lens/abc.joblib"
+model_lens = "./classifier/model/seq_lens/randomforest.joblib"
 para_lens = "./classifier/model/seq_lens/para.txt"
 
 avg_PID = 0.0

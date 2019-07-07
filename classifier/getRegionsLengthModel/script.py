@@ -27,12 +27,27 @@ def ReadEXCEL(excel_file):
     nrows = table.nrows
     for j in range(nrows):
         row = table.row_values(j)
-        if float(row[3]) >= float(row[2]) and float(row[3]) >= float(row[1]):
-            ret_matrix.append([row[0], 2])
-        elif float(row[2]) >= float(row[1]):
-            ret_matrix.append([row[0], 1])
+        if row[0][0:5] == "sabre":
+            if float(row[1]) >= float(row[2]) and float(row[1]) >= float(row[3]):
+                ret_matrix.append([row[0], 0])
+            elif float(row[2]) >= float(row[3]):
+                ret_matrix.append([row[0], 1])
+            else:
+                ret_matrix.append([row[0], 2])
+        elif row[0][0:2] == "ox":
+            if float(row[2]) >= float(row[1]) and float(row[2]) >= float(row[3]):
+                ret_matrix.append([row[0], 1])
+            elif float(row[1]) >= float(row[3]):
+                ret_matrix.append([row[0], 0])
+            else:
+                ret_matrix.append([row[0], 2])
         else:
-            ret_matrix.append([row[0], 0])
+            if float(row[3]) >= float(row[2]) and float(row[3]) >= float(row[1]):
+                ret_matrix.append([row[0], 2])
+            elif float(row[2]) >= float(row[1]):
+                ret_matrix.append([row[0], 1])
+            else:
+                ret_matrix.append([row[0], 0])
 
     return ret_matrix
 
