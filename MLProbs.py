@@ -2,6 +2,7 @@
 
 import os
 import sys
+import math
 from joblib import load
 sys.path.append("./utils/")
 sys.path.append("./classifier/")
@@ -54,11 +55,66 @@ len_family = 0
 sd_un_sp = 0.0
 peak_length_ratio = 0.0
 
+
+def ReadFile():
+    with open("./tmp/tmp_pid.txt", 'r') as filein:
+        file_context = filein.read().splitlines()[0].split("\t")
+    if len(file_context) >= 4:
+        return [file_context[0], file_context[1], file_context[2], file_context[3]]
+    else:
+        return [0, 0, 0, 0]
+
+def Calculate(len_family, len_seq):
+    if len_family == 0 or len_seq == 0:
+        return 0, 0, 0
+    dic = {}
+    dir_ = "./tmp/tmp_pid/"
+    file_list = os.listdir(dir_)
+    for file in file_list:
+        if file[0] != '.':
+            with open(dir_ + file) as filein:
+                tmp_list = filein.read().split("\t")[:-1]
+                for idx in range(0, len(tmp_list), 2):
+                    if tmp_list[idx] in dic.keys():
+                        dic[tmp_list[idx]] += float(tmp_list[idx + 1])
+                    else:
+                        dic[tmp_list[idx]] = float(tmp_list[idx + 1])
+    divided = ((len_family - 1) * len_family) / 2
+    avg_sp = 0.0
+    dickeys = sorted(dic.keys())
+    for i in range(len(dickeys)):
+        if int(dickeys[i]) < len_seq:
+            dic[dickeys[i]] /= divided
+            avg_sp += dic[dickeys[i]]
+    avg_sp /= len_seq
+    sd_sp = 0.0
+    for i in range(len(dickeys)):
+        if int(dickeys[i]) < len_seq:
+            sd_sp += ( dic[dickeys[i]] - avg_sp ) ** 2
+    sd_sp /= len_seq
+    sd_sp = math.sqrt(sd_sp)
+
+    peak_length_ratio = 0.0
+    for i in range(len(dickeys)):
+        if int(dickeys[i]) < len_seq:
+            if dic[dickeys[i]] >= 1:
+                peak_length_ratio += 1
+    peak_length_ratio /= len_seq
+
+    return [avg_sp, sd_sp, peak_length_ratio]
+
 def getPID(seq_file):
     global avg_PID
     global sd_PID
     global killed_stage
     os.system(pnp_getpid_path + seq_file)
+    tmp_list1 = ReadFile()
+    tmp_list2 = Calculate(int(tmp_list1[2]), int(tmp_list1[3]))
+    tmp_list = []
+    for i in tmp_list1:
+        tmp_list.append(i)
+    for i in tmp_list2:
+        tmp_list.append(i)
     ret_list = []
     if not os.path.exists(pid_path):
         killed_stage = 1
@@ -67,22 +123,13 @@ def getPID(seq_file):
         if not os.path.getsize(pid_path):
             killed_stage = 1
             return [ret_list]
-    para = [0.0 for i in range(6)]
+    para = []
     with open(para_, 'r') as para_in:
         para_context = para_in.read().splitlines()
-        for i in range(len(para)):
-            para[i] = float(para_context[i])
-
-    with open(pid_path, 'r') as filein:
-        file_context = filein.read().splitlines()[0]
-        tmp_list = file_context.split("\t")
-        avg_PID = float(tmp_list[0])
-        sd_PID = float(tmp_list[1])
-        for i in range(len(tmp_list)):
-            if para[i * 2] - para[i * 2 + 1] > 0:
-                ret_list.append((float(tmp_list[i]) - para[i * 2 + 1]) / (para[i * 2] - para[i * 2 + 1]))
-            else:
-                ret_list.append(float(tmp_list[i]))
+        for i in range(len(para_context)):
+            para.append(float(para_context[i]))
+    for i in range(len(tmp_list)):
+        ret_list.append((float(tmp_list[i]) - para[i * 2 + 1])/ (para[i * 2] - para[i * 2 + 1]))
     print("Already get classification data.")
     return [ret_list]
 
@@ -94,6 +141,7 @@ def TestClassifier(test_list):
     result = []
     result.append(2)
     result = clf.predict(test_list)
+    print(result)
     if int(result[0]) == 2:
         return 0
     if int(result[0]) == 0:
@@ -168,6 +216,7 @@ def Refresh():
     os.system("mkdir ./tmp/calc_col_score")
     os.system("mkdir ./tmp/alternative_msa")
     os.system("mkdir ./tmp/seperate_regions")
+    os.system("mkdir ./tmp/tmp_pid")
 
 def seperateRegions(seq_file, col_score, sigma, beta, class_lens):
     global killed_stage
@@ -320,7 +369,7 @@ def getRegionsLength(len_seqs, len_family, avg_PID, sd_PID, un_sp):
             para.append(float(file_context[i]))
     real_test = []
     for i in range(len(test)):
-        real_test.append((float(test[i]) - para[i * 2 + 1])/ (para[i * 2] - para[i * 2 - 1]))
+        real_test.append((float(test[i]) - para[i * 2 + 1])/ (para[i * 2] - para[i * 2 + 1]))
     clf = load(model_lens)
     class_lens = clf.predict([real_test])[0]
     if class_lens > 2 or class_lens < 0:
@@ -337,7 +386,7 @@ def getRegions_to_Realign(peak_length_ratio, avg_PID, sd_un_sp, un_sp):
             para.append(float(file_context[i]))
     real_test = []
     for i in range(len(test)):
-        real_test.append((float(test[i]) - para[i * 2 + 1])/ (para[i * 2] - para[i * 2 - 1]))
+        real_test.append((float(test[i]) - para[i * 2 + 1])/ (para[i * 2] - para[i * 2 + 1]))
     clf = load(model_region)
     class_region = clf.predict([real_test])[0]
     if class_region > 1 or class_region < 0:
@@ -361,7 +410,7 @@ if __name__ == "__main__":
     else:
         print("Choose to Realign Unreliable Regions!")
 
-    if int(class_region) == 1:
+    if int(class_region) == 1 or int(class_region) == 0:
         class_lens = getRegionsLength(len_seqs, len_family, avg_PID, sd_PID, un_sp)
         seperateRegions(seq_file, col_score, sigma, beta, class_lens)
     else:

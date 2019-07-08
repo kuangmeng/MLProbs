@@ -672,6 +672,7 @@ string MSA::Alter_ModelAdjustmentTest(MultiSequence *sequences){
 	//store percent identity of every pair sequences
 	float* PIDs = new float[ (numSeqs - 1) * numSeqs / 2 * sizeof(float) ];
  float* SOPs = new float[ (numSeqs - 1) * numSeqs / 2 * sizeof(float) ];
+ int avg_length = 0;
 #ifdef _OPENMP
 #pragma omp parallel for private(pairIdx) default(shared) schedule(dynamic)
 	for(pairIdx = 0; pairIdx < numPairs; pairIdx++) {
@@ -687,12 +688,15 @@ string MSA::Alter_ModelAdjustmentTest(MultiSequence *sequences){
 		for (int b = a + 1; b < numSeqs; b++) {
 			pairIdx++;
 #endif
+			ofstream outfiles;
+			outfiles.open("./tmp/tmp_pid/tmp" + to_string(a) +"_" + to_string(b) + ".txt", ios::app);
+ 			int num_idx = 0;
 			Sequence *seq1 = sequences->GetSequence(a);
 			Sequence *seq2 = sequences->GetSequence(b);
 			pair<SafeVector<char> *, float> alignment = model.ComputeViterbiAlignment(seq1,seq2);
 			SafeVector<char>::iterator iter1 = seq1->GetDataPtr();
     		SafeVector<char>::iterator iter2 = seq2->GetDataPtr();
-
+			avg_length += alignment.first -> size();
             float N_correct_match = 0;
 						float N_emit = 0;
 			//float N_alignment = 0;
@@ -705,10 +709,20 @@ string MSA::Alter_ModelAdjustmentTest(MultiSequence *sequences){
 					unsigned char c2 = (unsigned char) iter2[j++];
    					if(c1==c2) N_correct_match += 1;
 						N_emit += emitPairsDefault[alphabetDefault.find(c1)][alphabetDefault.find(c2)];
-
+						outfiles << num_idx <<"\t"<< BLOSUM62[alphabetDefault.find(c1)][alphabetDefault.find(c2)] <<"\t";
+						num_idx ++;
 				}
-                else if(*iter == 'X') i++;
- 				else if(*iter == 'Y') j++;
+
+				else if(*iter == 'X'){
+          i++;
+          outfiles << num_idx <<"\t"<< 0 << "\t";
+          num_idx ++;
+        }
+ 				else if(*iter == 'Y'){
+           j++;
+           outfiles << num_idx <<"\t"<< 0 <<"\t";
+           num_idx ++;
+        }
             }
             if(i!= seq1->GetLength()+1 || j!= seq2->GetLength() + 1 ) cerr << "percent identity error"<< endl;
             PIDs[pairIdx] = N_correct_match / alignment.first->size();
@@ -723,6 +737,7 @@ string MSA::Alter_ModelAdjustmentTest(MultiSequence *sequences){
 	}
 	identity /=  ( (numSeqs-1)*numSeqs/2 );//average percent identity
 	sumofpairs /= ( (numSeqs-1)*numSeqs/2 );
+	avg_length /= ( (numSeqs-1)*numSeqs/2 );
 	if (sumofpairs > 1 ){
 		sumofpairs = 0;
 	}
@@ -735,7 +750,7 @@ string MSA::Alter_ModelAdjustmentTest(MultiSequence *sequences){
 	variance /= ( (numSeqs-1)*numSeqs/2 );
 	variance = sqrt(variance);
 
-    return to_string(identity) + "\t" + to_string(variance) + "\t" + to_string(sumofpairs);
+    return to_string(identity) + "\t" + to_string(variance) + "\t" + to_string(numSeqs) + "\t" + to_string(avg_length);
 }
 
 
