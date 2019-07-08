@@ -40,7 +40,7 @@ def Compute(prom):
     bench_list = os.listdir(path)
     tmp_bench = []
     total_time = []
-    for i in range(10):
+    for i in range(1):
         for bench in bench_list:
             if os.path.isdir(path + "/" + bench):
                 tmp_bench.append(bench)

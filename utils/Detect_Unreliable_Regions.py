@@ -5,6 +5,8 @@ Created on Thu Jun 27 14:18:14 2019
 
 @author: mmkuang
 """
+import math
+
 tmp_str = "ARNDCQEGHILKMFPSTWYV"
 
 matrix = []
@@ -56,6 +58,8 @@ def getMatrix():
 
 def detect_unreliable_regions(real_pnp, col_score):
     getMatrix()
+    tmp_un_sp_arr = []
+    peak_length_ratio = 0.0
     filein = open(real_pnp, 'r')
     file_context = filein.read().splitlines()
     filein.close()
@@ -91,13 +95,33 @@ def detect_unreliable_regions(real_pnp, col_score):
                     tmp_score += float(matrix[getIdx(dic[dickeys[k1]][i])][getIdx(dic[dickeys[k2]][i])])
         tmp_score /= lens_
         tmp_un_sp += tmp_score
+        tmp_un_sp_arr.append(tmp_score)
         fileout.write(str(i + 1) + "\t" + str(tmp_score) + "\n")
     fileout.write("#END\n")
     fileout.close()
     print("Calculated Column Score!")
-    if lens == 0:
-        return 0, 0, len(dickeys)
-    return tmp_un_sp / lens, lens, len(dickeys)
+    tmp_sd = 0.0
+    if lens != 0:
+        tmp_un_sp /= lens
+        tmp_sd = getSD(tmp_un_sp, tmp_un_sp_arr, lens)
+        peak_length_ratio = getPeak_Length_Ratio(tmp_un_sp_arr, lens)
+    else:
+        tmp_un_sp = 0
+    return tmp_un_sp, lens, len(dickeys), tmp_sd, peak_length_ratio
+
+def getSD(tmp_un_sp, tmp_un_sp_arr, lens):
+    sd_ = 0.0
+    for item in tmp_un_sp_arr:
+        sd_ += (float(item) - float(tmp_un_sp)) ** 2
+    sd_ /= lens
+    return math.sqrt(sd_)
+
+def getPeak_Length_Ratio(tmp_un_sp_arr, lens):
+    ratio = 0.0
+    for item in tmp_un_sp_arr:
+        if float(item) >= 1.0:
+            ratio += 1
+    return ratio / lens
 
 def getIdx(char):
     for i in range(len(tmp_str)):

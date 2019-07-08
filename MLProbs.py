@@ -13,6 +13,9 @@ from preprocessing_seq_file import getTail
 from postprocessing_msa_file import processingHead_MSA
 from postprocessing_msa_file import reverseTail_MSA
 from Detect_Unreliable_Regions import detect_unreliable_regions
+from reliable_regions import Quickprobs
+from reliable_regions import GetReliableRegions
+from reliable_regions import seperateReliableRegions
 from get_TC_SP import getTC_SP
 quickprobs = "./realign/quickprobs "
 qscore = "./qscore/qscore "
@@ -29,7 +32,7 @@ col_score = "./tmp/calc_col_score/_col_col.scr"
 sigma = 0.7
 beta = 0.01
 theta = 0.4
-threshold = 0.8
+threshold = 1.0
 output_file = "result.msa"
 killed_stage = 0
 model_ = "./classifier/model/branch/abc.joblib"
@@ -38,11 +41,18 @@ para_ = "./classifier/model/branch/para.txt"
 model_lens = "./classifier/model/seq_lens/randomforest.joblib"
 para_lens = "./classifier/model/seq_lens/para.txt"
 
+model_region = "./classifier/model/regions/randomforest.joblib"
+para_region = "./classifier/model/regions/para.txt"
+
+class_region = 0
+
 avg_PID = 0.0
 len_seqs = 0
 un_sp = 0.0
 sd_PID = 0.0
 len_family = 0
+sd_un_sp = 0.0
+peak_length_ratio = 0.0
 
 def getPID(seq_file):
     global avg_PID
@@ -172,10 +182,33 @@ def seperateRegions(seq_file, col_score, sigma, beta, class_lens):
                 if not os.path.getsize(col_score):
                     killed_stage = 4
                     return
-            print("Seperating Regions...")
+            print("Seperating Unreliable Regions...")
             unreliable_regions = getUnreliableRegions(sigma, beta, theta, threshold, col_score, seq_file, real_output, class_lens)
             seperateUnreliableRegions(unreliable_regions, real_output, dir_output)
-            print("Seperated Regions.")
+            print("Seperated Unreliable Regions.")
+        else:
+            killed_stage = 4
+    else:
+        killed_stage = 4
+        #Align_ClustalW2(seq_file)
+        os.system(quickprobs + " " + seq_file + " > " + output_file)
+
+def SeperateReliableRegions(seq_file, col_score):
+    global killed_stage
+    if killed_stage != 2:
+        if killed_stage != 3:
+            if not os.path.exists(col_score):
+                killed_stage = 4
+                return
+            else:
+                if not os.path.getsize(col_score):
+                    killed_stage = 4
+                    return
+            print("Seperating Reliable Regions...")
+            #Quickprobs(seq_file, dir_output)
+            reliable_regions = GetReliableRegions(col_score, threshold, 0, seq_file)
+            seperateReliableRegions(reliable_regions, real_output, dir_output)
+            print("Seperated Reliable Regions.")
         else:
             killed_stage = 4
     else:
@@ -294,6 +327,22 @@ def getRegionsLength(len_seqs, len_family, avg_PID, sd_PID, un_sp):
         class_lens = 2
     return class_lens
 
+def getRegions_to_Realign(peak_length_ratio, avg_PID, sd_un_sp, un_sp):
+    class_region = 1
+    test = [peak_length_ratio, avg_PID, sd_un_sp, un_sp]
+    para = []
+    with open(para_region, 'r') as filein:
+        file_context = filein.read().splitlines()
+        for i in range(2 * len(test)):
+            para.append(float(file_context[i]))
+    real_test = []
+    for i in range(len(test)):
+        real_test.append((float(test[i]) - para[i * 2 + 1])/ (para[i * 2] - para[i * 2 - 1]))
+    clf = load(model_region)
+    class_region = clf.predict([real_test])[0]
+    if class_region > 1 or class_region < 0:
+        class_region = 1
+    return class_region
 
 if __name__ == "__main__":
     Refresh()
@@ -305,9 +354,19 @@ if __name__ == "__main__":
     getMSA(class_, seq_file)
     # getAlternativeMSA(class_, seq_file)
 
-    un_sp, len_seqs, len_family = detect_unreliable_regions(real_output, col_score)
-    class_lens = getRegionsLength(len_seqs, len_family, avg_PID, sd_PID, un_sp)
-    seperateRegions(seq_file, col_score, sigma, beta, class_lens)
+    un_sp, len_seqs, len_family, sd_un_sp, peak_length_ratio = detect_unreliable_regions(real_output, col_score)
+    class_region = getRegions_to_Realign(peak_length_ratio, avg_PID, sd_un_sp, un_sp)
+    if int(class_region) == 0:
+        print("Choose to Realign Reliable Regions!")
+    else:
+        print("Choose to Realign Unreliable Regions!")
+
+    if int(class_region) == 1:
+        class_lens = getRegionsLength(len_seqs, len_family, avg_PID, sd_PID, un_sp)
+        seperateRegions(seq_file, col_score, sigma, beta, class_lens)
+    else:
+        SeperateReliableRegions(seq_file, col_score)
+
     if killed_stage != 4:
         print("Realign !!!")
         do_Realign_Dir(dir_output, class_, quickprobs)

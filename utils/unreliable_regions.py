@@ -15,6 +15,7 @@ def getUnreliableRegions(sigma, beta, theta, threshold, col_score, seq_file, rea
         lens_seq_4_devide = 10
     elif int(class_lens) == 0:
         lens_seq_4_devide = 0
+
     print("Length for Devide is: %d"%(lens_seq_4_devide))
     last_col = 0
     num_score = []
