@@ -17,15 +17,12 @@ from Detect_Unreliable_Regions import detect_unreliable_regions
 from reliable_regions import Quickprobs
 from reliable_regions import GetReliableRegions
 from reliable_regions import seperateReliableRegions
-from get_TC_SP import getTC_SP
 quickprobs = "./realign/quickprobs "
-qscore = "./qscore/qscore "
 pnp_getpid_path = "./PnpProbs/alter_pnpprobs -G "
 pnp_getmsa_path = "./PnpProbs/alter_pnpprobs -p "
 real_pnp_output = " -o ./tmp/head_ret.msa"
 real_output = "./tmp/head_ret.msa"
 pid_path = "./tmp/tmp_pid.txt"
-alternative_msa_path = " ./tmp/alternative_msa/ "
 tmp_tail_path = "./tmp/tail_ret.seq"
 calc_col_score_prefix = " ./tmp/calc_col_score/ -d "
 dir_output = "./tmp/seperate_regions/"
@@ -260,110 +257,18 @@ def SeperateReliableRegions(seq_file, col_score):
                     killed_stage = 4
                     return
             print("Seperating Reliable Regions...")
-            #Quickprobs(seq_file, dir_output)
-            reliable_regions = GetReliableRegions(col_score, threshold, 0, seq_file)
-            seperateReliableRegions(reliable_regions, real_output, dir_output)
+            Quickprobs(seq_file, dir_output)
+            #reliable_regions = GetReliableRegions(col_score, threshold, 0, seq_file)
+            #seperateReliableRegions(reliable_regions, real_output, dir_output)
             print("Seperated Reliable Regions.")
         else:
             killed_stage = 4
     else:
         killed_stage = 4
-        #Align_ClustalW2(seq_file)
         os.system(quickprobs + " " + seq_file + " > " + output_file)
-
-#
-# def Align_ClustalW2(seq_file):
-#     print("Using ClustalW2 to continue MSA process ...")
-#     if os.path.exists("./tmp/clustalw"):
-#         os.system("rm -rf ./tmp/clustalw")
-#     clustalw2 = "./clustalw/clustalw2 "
-#     os.system("mkdir ./tmp/clustalw")
-#     os.system("cp " + seq_file + " ./tmp/clustalw/tmp.seq")
-#     os.system(clustalw2 + " ./tmp/clustalw/tmp.seq > ./tmp/clustalw/tmp.log")
-#     tmp_file_in = "./tmp/clustalw/tmp.aln"
-#
-#     if not os.path.exists(tmp_file_in):
-#         Move(seq_file, output_file)
-#     else:
-#         if not os.path.getsize(tmp_file_in):
-#             Move(seq_file, output_file)
-#         else:
-#             tmp_file_out = "./tmp/clustalw/tmp.msa"
-#             Calc_FASTA(tmp_file_in, tmp_file_out)
-#             Move(tmp_file_out, output_file)
-#     print("ClustalW2 finished.")
-#
-# def Calc_FASTA(file_in, file_out):
-#     dic = {}
-#     with open(file_in, 'r') as filein:
-#         file_context = filein.read().splitlines()
-#         for item in file_context:
-#             tmp_list = item.split()
-#             if len(tmp_list) == 2:
-#                 if tmp_list[0] not in dic.keys():
-#                     dic[tmp_list[0]] = tmp_list[1]
-#                 else:
-#                     dic[tmp_list[0]] += tmp_list[1]
-#
-#     dickeys = sorted(dic.keys())
-#     fileout = open(file_out, 'w')
-#     for idx in range(len(dickeys)):
-#         fileout.write(">" + dickeys[idx] + "\n")
-#         fileout.write(dic[dickeys[idx]] + "\n")
-#     fileout.close()
-#
-# def CheckFile(output_file, class_):
-#     need_remake = False
-#     dic = {}
-#     has_key = False
-#     value = ""
-#     key = ""
-#     filein = open(output_file, 'r')
-#     file_context = filein.read().splitlines()
-#     filein.close()
-#     for itm in range(len(file_context)):
-#         if file_context[itm][0:1] == ">":
-#             if has_key == True:
-#                 dic[key] = value
-#                 value = ""
-#                 key = ""
-#                 has_key = False
-#             has_key = True
-#             key = file_context[itm]
-#         elif has_key == True:
-#             value = value.replace("\r","") + file_context[itm].replace("\r","")
-#     dic[key] = value
-#     dickeys = sorted(dic.keys())
-#     for idx in range(len(dickeys)):
-#         if len(dic[dickeys[idx]]) != len(dic[dickeys[0]]):
-#             need_remake = True
-#     if need_remake == True:
-#         os.system(pnp_getmsa_path + str(class_) + " " + seq_file + " -o " + output_file)
 
 def Move(file_in, file_out):
     os.system("cp "+ file_in + " " + file_out)
-#
-# def getLengthSeq(output_file):
-#     filein = open(output_file, 'r')
-#     file_context = filein.read().splitlines()
-#     filein.close()
-#     has_key = False
-#     dic ={}
-#     value = ""
-#     key = ""
-#     for itm in range(len(file_context)):
-#         if file_context[itm][0:1] == ">":
-#             if has_key == True:
-#                 dic[key] = value
-#                 has_key = False
-#                 value = ""
-#                 key = ""
-#             has_key = True
-#             key = file_context[itm]
-#         elif has_key == True:
-#             value = value.replace("\r","") + file_context[itm].replace("\r","")
-#     dic[key] = value
-#     return len(value), len(dic.keys())
 
 def getRegionsLength(len_seqs, len_family, avg_PID, sd_PID, un_sp):
     class_lens = 2

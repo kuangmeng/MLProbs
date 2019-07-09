@@ -12,8 +12,8 @@ from script import PrepareData
 methods = ["randomforest", "svm", "abc"]
 
 def Generate_Data():
-    train_data, train_label = PrepareData()
-    return train_data, train_label
+    name, train_data, train_label = PrepareData()
+    return name, train_data, train_label
 
 def Test_L(path, test_data):
     clf = load(path)
@@ -33,7 +33,7 @@ def getAccuracy(test, ref):
     for i in range(lens):
         if test[i] == ref[i]:
             tmp_num += 1
-    return tmp_num / float(lens) 
+    return tmp_num / float(lens)
 
 
 def TestFile(train, label):
@@ -45,14 +45,15 @@ def TestFile(train, label):
         for test_i in test:
             result.append(Test([test_i], flag))
         total_result.append(result)
-    
+
     for i in range(3):
         print(methods[i])
         print(getAccuracy(total_result[i], test_label))
-        print(total_result[i])
 
 
 if __name__ == "__main__":
-    train, label = Generate_Data()
+
+    name, train, label = Generate_Data()
+    for i in range(len(train)):
+        print(name[i] + "\t" + str(train[i]) + "\t" + str(label[i]))
     TestFile(train, label)
-    print(label)

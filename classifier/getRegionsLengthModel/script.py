@@ -35,14 +35,14 @@ def ReadEXCEL(excel_file):
             else:
                 ret_matrix.append([row[0], 2])
         elif row[0][0:2] == "ox":
-            if float(row[2]) >= float(row[1]) and float(row[2]) >= float(row[3]):
-                ret_matrix.append([row[0], 1])
-            elif float(row[1]) >= float(row[3]):
+            if float(row[3]) >= float(row[1]) and float(row[3]) >= float(row[2]):
+                ret_matrix.append([row[0], 2])
+            elif float(row[1]) >= float(row[2]):
                 ret_matrix.append([row[0], 0])
             else:
-                ret_matrix.append([row[0], 2])
+                ret_matrix.append([row[0], 1])
         else:
-            if float(row[3]) >= float(row[2]) and float(row[3]) >= float(row[1]):
+            if float(row[3]) >= float(row[1]) and float(row[3]) >= float(row[2]):
                 ret_matrix.append([row[0], 2])
             elif float(row[2]) >= float(row[1]):
                 ret_matrix.append([row[0], 1])
@@ -63,11 +63,11 @@ def getLabel(ret_matrix1, ret_matrix2):
     return train, label
 
 def PrepareData():
-    
+
     ret_matrix1 = ReadTXT(txt_file)
     ret_matrix2 = ReadEXCEL(excel_file)
     train, label = getLabel(ret_matrix1, ret_matrix2)
-
+    print(len(train))
     para = [0.0 for i in range(len(train[0]) * 2)]
     train_final = []
     for i in range(len(train[0])):
@@ -76,7 +76,7 @@ def PrepareData():
                 para[i * 2] = float(train[j][i])
             if float(train[j][i]) < para[i * 2 + 1]:
                 para[i * 2 + 1] = float(train[j][i])
-    
+
     for i in range(len(train)):
         tmp_arr = []
         for j in range(len(train[0])):
@@ -86,5 +86,5 @@ def PrepareData():
     with open("para.txt", 'w') as fileout:
         for i in para:
             fileout.write(str(i) + "\n")
-            
+
     return train_final, label

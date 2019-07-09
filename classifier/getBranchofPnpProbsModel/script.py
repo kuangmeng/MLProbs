@@ -15,10 +15,8 @@ def ReadTXT(txt_file):
     ret_matrix = []
     with open(txt_file, 'r') as file_in:
         file_context = file_in.read().splitlines()
-        for line in range(0, len(file_context) - 1, 2):
-            tmp_list1 = file_context[line].split("\t")
-            tmp_list2 = file_context[line + 1].split("\t")[1:]
-            tmp_list = tmp_list1 + tmp_list2
+        for line in range(len(file_context)):
+            tmp_list = file_context[line].split("\t")
             ret_matrix.append(tmp_list)
     return ret_matrix
 
@@ -33,28 +31,26 @@ def ReadEXCEL(excel_file):
             ret_matrix.append([row[0], 0])
         else:
             ret_matrix.append([row[0], 1])
-
     return ret_matrix
 
 def getLabel(ret_matrix1, ret_matrix2):
     train = []
     label = []
+    name = []
     for i_line in ret_matrix1:
         for j_line in ret_matrix2:
             if i_line[0].strip() == j_line[0].strip():
                 train.append(i_line[1:])
                 label.append(j_line[1])
+                name.append(i_line[0])
                 break
-    return train, label
+    return name, train, label
 
 def PrepareData():
 
     ret_matrix1 = ReadTXT(txt_file)
-    print(len(ret_matrix1))
     ret_matrix2 = ReadEXCEL(excel_file)
-    print(len(ret_matrix2))
-
-    train, label = getLabel(ret_matrix1, ret_matrix2)
+    name, train, label = getLabel(ret_matrix1, ret_matrix2)
     print(len(train))
     para = [0.0 for i in range(len(train[0]) * 2)]
     train_final = []
@@ -74,4 +70,4 @@ def PrepareData():
     with open("para.txt", 'w') as fileout:
         for i in para:
             fileout.write(str(i) + "\n")
-    return train_final, label
+    return name, train_final, label

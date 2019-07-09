@@ -15,14 +15,14 @@ from RandomForest import RandomForest
 from ABC import ABC
 
 def Generate_Data():
-    train_data, train_label = PrepareData()
+    name, train_data, train_label = PrepareData()
     return train_data, train_label
 
 def Train(train_data, train_label):
     SVM(train_data, train_label)
     RandomForest(train_data, train_label)
     ABC(train_data, train_label)
-    
+
 if __name__ == "__main__":
 
     train_data, train_label = Generate_Data()
