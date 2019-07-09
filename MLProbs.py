@@ -60,9 +60,9 @@ def ReadFile():
     with open("./tmp/tmp_pid.txt", 'r') as filein:
         file_context = filein.read().splitlines()[0].split("\t")
     if len(file_context) >= 4:
-        return [file_context[0], file_context[1], file_context[2], file_context[3]]
+        return file_context[1], [file_context[0], file_context[2], file_context[3]]
     else:
-        return [0, 0, 0, 0]
+        return 0, [0, 0, 0]
 
 def Calculate(len_family, len_seq):
     if len_family == 0 or len_seq == 0:
@@ -100,21 +100,28 @@ def Calculate(len_family, len_seq):
             if dic[dickeys[i]] >= 1:
                 peak_length_ratio += 1
     peak_length_ratio /= len_seq
-
-    return [avg_sp, sd_sp, peak_length_ratio]
+    if sd_sp > 10:
+        sd_sp = 0
+    if avg_sp > 10:
+        avg_sp = 0
+    if peak_length_ratio > 10:
+        peak_length_ratio = 0
+    return [avg_sp, peak_length_ratio]
 
 def getPID(seq_file):
     global avg_PID
     global sd_PID
     global killed_stage
     os.system(pnp_getpid_path + seq_file)
-    tmp_list1 = ReadFile()
-    tmp_list2 = Calculate(int(tmp_list1[2]), int(tmp_list1[3]))
+    sd_PID, tmp_list1 = ReadFile()
+    avg_PID = float(tmp_list1[0])
+    tmp_list2 = Calculate(int(tmp_list1[1]), int(tmp_list1[2]))
     tmp_list = []
     for i in tmp_list1:
         tmp_list.append(i)
     for i in tmp_list2:
         tmp_list.append(i)
+    print(tmp_list)
     ret_list = []
     if not os.path.exists(pid_path):
         killed_stage = 1
@@ -131,6 +138,7 @@ def getPID(seq_file):
     for i in range(len(tmp_list)):
         ret_list.append((float(tmp_list[i]) - para[i * 2 + 1])/ (para[i * 2] - para[i * 2 + 1]))
     print("Already get classification data.")
+    print(ret_list)
     return [ret_list]
 
 def TestClassifier(test_list):
@@ -138,11 +146,9 @@ def TestClassifier(test_list):
     if killed_stage == 1:
         return 0
     clf = load(model_)
-    result = []
-    result.append(2)
     result = clf.predict(test_list)
-    print(result)
-    if int(result[0]) == 2:
+    print(result[0])
+    if int(result[0]) >= 2 or int(result[0]) < 0:
         return 0
     if int(result[0]) == 0:
         print("Adapt to Progressive PnpProbs.")

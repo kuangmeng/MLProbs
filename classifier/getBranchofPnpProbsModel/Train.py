@@ -7,15 +7,15 @@ Created on Mon Feb 18 14:42:55 2019
 """
 
 import sys
-from data_generate import Prepare_Train_Data
+from script import PrepareData
 sys.path.append("./Model/")
 
 from SVM import SVM
 from RandomForest import RandomForest
 from ABC import ABC
 
-def Generate_Data(file1, file2):
-    train_data, train_label = Prepare_Train_Data(file1, file2)
+def Generate_Data():
+    train_data, train_label = PrepareData()
     return train_data, train_label
 
 def Train(train_data, train_label):
@@ -25,5 +25,5 @@ def Train(train_data, train_label):
     
 if __name__ == "__main__":
 
-    train_data, train_label = Generate_Data("./data/pnp1.txt", "./data/pnp2.txt")
+    train_data, train_label = Generate_Data()
     Train(train_data, train_label)

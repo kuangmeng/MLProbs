@@ -13,4 +13,4 @@ def SVM(X_matrix, y_array):
     y = y_array
     clf = svm.SVC(gamma='scale')
     clf.fit(X, y)
-    dump(clf, './Models_Layer1/models/svm.joblib')
+    dump(clf, './Model/models/svm.joblib')

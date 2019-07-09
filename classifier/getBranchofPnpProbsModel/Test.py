@@ -7,11 +7,12 @@ Created on Tue Feb 19 13:15:34 2019
 """
 from joblib import load
 import sys
-methods = ["randomforest", "svm", "abc"]
-from data_generate import Prepare_Train_Data
+from script import PrepareData
 
-def Generate_Data(file1, file2):
-    train_data, train_label = Prepare_Train_Data(file1, file2)
+methods = ["randomforest", "svm", "abc"]
+
+def Generate_Data():
+    train_data, train_label = PrepareData()
     return train_data, train_label
 
 def Test_L(path, test_data):
@@ -20,13 +21,11 @@ def Test_L(path, test_data):
     return int(result[0])
 
 def Test(test_data, flag):
-    l_path = "./Models/models/"
-    methods = ["randomforest", "svm", "sgd", "abc"]
+    l_path = "./Model/models/"
     tail = ".joblib"
     path = l_path + methods[int(flag)] + tail
     result = Test_L(path, test_data)
     return result
-
 
 def getAccuracy(test, ref):
     lens = len(test)
@@ -38,8 +37,8 @@ def getAccuracy(test, ref):
 
 
 def TestFile(train, label):
-    test = train[0: int(len(train) * 0.3)]
-    test_label = label[0: int(len(train) * 0.3)]
+    test = train
+    test_label = label
     total_result = []
     for flag in range(3):
         result = []
@@ -50,8 +49,10 @@ def TestFile(train, label):
     for i in range(3):
         print(methods[i])
         print(getAccuracy(total_result[i], test_label))
+        print(total_result[i])
+
 
 if __name__ == "__main__":
-    train, label = Generate_Data("./data/pnp1.txt", "./data/pnp2.txt")
+    train, label = Generate_Data()
     TestFile(train, label)
-
+    print(label)

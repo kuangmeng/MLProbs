@@ -12,6 +12,6 @@ from joblib import dump
 def RandomForest(X_matrix, y_array):
     X = X_matrix
     Y = y_array
-    clf = RandomForestClassifier(n_estimators=10)
+    clf = RandomForestClassifier(n_estimators=100)
     clf = clf.fit(X, Y)
-    dump(clf, './Models_Layer1/models/randomforest.joblib')
+    dump(clf, './Model/models/randomforest.joblib')
