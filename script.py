@@ -7,8 +7,8 @@ import os
 import time
 
 def Preprocessing(bench, file, path):
-    fileout = path +"/" + bench +"/"+ file
-    filein = path +"/"+ bench +"/"+ file
+    fileout = path +"/" + bench +"/in/"+ file
+    filein = path +"/"+ bench +"/in/"+ file
     ret_list = []
     flag = 0
     filein_list = open(filein, 'r').read().splitlines()
@@ -29,14 +29,14 @@ def Preprocessing(bench, file, path):
             fileout_.write(line + "\n")
 
 def Run(prom, bench, file, path, i):
-    Preprocessing(bench, file, path)
-    f_t = os.path.exists("./output/" + bench + "_" + str(i))
+    #Preprocessing(bench, file, path)
+    f_t = os.path.exists("./output/" + bench)
     if not f_t:
-        os.makedirs("./output/" + bench + "_" + str(i))
-    os.system("%s %s/%s/%s ./output/%s/%s" % (prom, path, bench, file, bench + "_" + str(i), file))
+        os.makedirs("./output/" + bench)
+    os.system("%s %s/%s/%s ./output/%s/%s" % (prom, path, bench + "/in", file, bench, file))
 
 def Compute(prom):
-    path = "./BENCH"
+    path = "./bench_all"
     bench_list = os.listdir(path)
     tmp_bench = []
     total_time = []
@@ -46,13 +46,13 @@ def Compute(prom):
                 tmp_bench.append(bench)
                 tmp_time = 0.0
                 file_num = 0
-                file_list = os.listdir(path + "/" + bench)
+                file_list = os.listdir(path + "/" + bench + "/in/")
                 for fileidx in range(len(file_list)):
                     tmp_str = ""
                     if file_list[fileidx][0:1] == ".":
                         continue
                     file_num += 1
-                    print("开始处理%d号文件: %s ..." % (fileidx, bench + "/" + file_list[fileidx]))
+                    print("开始处理%d号文件: %s ..." % (fileidx, bench + "/in/" + file_list[fileidx]))
                     start = time.time()
                     Run(prom, bench, file_list[fileidx], path, i)
                     end = time.time()

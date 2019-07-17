@@ -271,7 +271,7 @@ def Move(file_in, file_out):
     os.system("cp "+ file_in + " " + file_out)
 
 def getRegionsLength(len_seqs, len_family, avg_PID, sd_PID, un_sp):
-    class_lens = 2
+    class_lens = 3
     test = [len_seqs, len_family, avg_PID, sd_PID, un_sp]
     para = []
     with open(para_lens, 'r') as filein:
@@ -283,8 +283,8 @@ def getRegionsLength(len_seqs, len_family, avg_PID, sd_PID, un_sp):
         real_test.append((float(test[i]) - para[i * 2 + 1])/ (para[i * 2] - para[i * 2 + 1]))
     clf = load(model_lens)
     class_lens = clf.predict([real_test])[0]
-    if class_lens > 2 or class_lens < 0:
-        class_lens = 2
+    if class_lens > 3 or class_lens < 0:
+        class_lens = 3
     return class_lens
 
 def getRegions_to_Realign(peak_length_ratio, avg_PID, sd_un_sp, un_sp):
@@ -321,7 +321,7 @@ if __name__ == "__main__":
     else:
         print("Choose to Realign Unreliable Regions!")
 
-    if int(class_region) == 1 or int(class_region) == 0:
+    if int(class_region) == 1:
         class_lens = getRegionsLength(len_seqs, len_family, avg_PID, sd_PID, un_sp)
         seperateRegions(seq_file, col_score, sigma, beta, class_lens)
     else:

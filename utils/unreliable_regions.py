@@ -10,7 +10,9 @@ from Detect_Unreliable_Family import Detect_Unreliable
 def getUnreliableRegions(sigma, beta, theta, threshold, col_score, seq_file, real_output, class_lens):
     # if Detect_Unreliable(theta, threshold, col_score, seq_file, real_output):
     #     return []
-    lens_seq_4_devide = 15
+    lens_seq_4_devide = 30
+    if int(class_lens) == 2:
+        lens_seq_4_devide = 20
     if int(class_lens) == 1:
         lens_seq_4_devide = 10
     elif int(class_lens) == 0:
