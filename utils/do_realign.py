@@ -116,14 +116,11 @@ def Combination_Files(seq_file, dir_output, output_file):
     for itt in need_combination:
         tmp_num_arr.append(int(itt.split("/")[-1].split("-")[0]))
     tmp_num_arr = sorted(tmp_num_arr)
-    print(tmp_num_arr)
     need_combination_files = []
     for num_ in tmp_num_arr:
         for n_file in need_combination:
             if str(num_) == n_file.split("/")[-1].split("-")[0]:
                 need_combination_files.append(n_file)
-    for n_file in need_combination_files:
-        print(n_file)
     if len(need_combination) != len(need_combination_files):
         print("ERROR: file length")
         return

@@ -1,7 +1,7 @@
 import os
 import time
 
-bench = "../bench_all/"
+bench = "./bench_all/"
 
 quick = "./quickprobs "
 

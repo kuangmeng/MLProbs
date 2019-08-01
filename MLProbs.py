@@ -27,8 +27,8 @@ tmp_tail_path = "./tmp/tail_ret.seq"
 calc_col_score_prefix = " ./tmp/calc_col_score/ -d "
 dir_output = "./tmp/seperate_regions/"
 col_score = "./tmp/calc_col_score/_col_col.scr"
-sigma = 0.7
-beta = 0.01
+sigma = 1.0
+beta = 0.0
 theta = 0.4
 threshold = 1.0
 output_file = "result.msa"
@@ -118,7 +118,6 @@ def getPID(seq_file):
         tmp_list.append(i)
     for i in tmp_list2:
         tmp_list.append(i)
-    print(tmp_list)
     ret_list = []
     if not os.path.exists(pid_path):
         killed_stage = 1
@@ -135,7 +134,6 @@ def getPID(seq_file):
     for i in range(len(tmp_list)):
         ret_list.append((float(tmp_list[i]) - para[i * 2 + 1])/ (para[i * 2] - para[i * 2 + 1]))
     print("Already get classification data.")
-    print(ret_list)
     return [ret_list]
 
 def TestClassifier(test_list):
@@ -144,7 +142,6 @@ def TestClassifier(test_list):
         return 0
     clf = load(model_)
     result = clf.predict(test_list)
-    print(result[0])
     if int(result[0]) >= 2 or int(result[0]) < 0:
         return 0
     if int(result[0]) == 0:
@@ -313,7 +310,6 @@ if __name__ == "__main__":
     class_ = TestClassifier(test_list)
     getMSA(class_, seq_file)
     # getAlternativeMSA(class_, seq_file)
-
     un_sp, len_seqs, len_family, sd_un_sp, peak_length_ratio = detect_unreliable_regions(real_output, col_score)
     class_region = getRegions_to_Realign(peak_length_ratio, avg_PID, sd_un_sp, un_sp)
     if int(class_region) == 0:
@@ -347,8 +343,7 @@ if __name__ == "__main__":
                     #Align_ClustalW2(seq_file)
                     os.system(quickprobs + " " + seq_file + " > " + output_file)
     killed_stage = 0
-
-    #Move(real_output, output_file)
+    # Move(real_output, output_file)
     if not os.path.getsize(output_file):
         print("Result is Empty ?")
         #Align_ClustalW2(seq_file)
