@@ -18,8 +18,8 @@ from reliable_regions import Quickprobs
 from reliable_regions import GetReliableRegions
 from reliable_regions import seperateReliableRegions
 quickprobs = "./realign/quickprobs "
-pnp_getpid_path = "./PnpProbs/alter_pnpprobs -G "
-pnp_getmsa_path = "./PnpProbs/alter_pnpprobs -p "
+pnp_getpid_path = "./baseMSA/pnpprobs/alter_pnpprobs -G "
+pnp_getmsa_path = "./baseMSA/pnpprobs/alter_pnpprobs -p "
 real_pnp_output = " -o ./tmp/head_ret.msa"
 real_output = "./tmp/head_ret.msa"
 pid_path = "./tmp/tmp_pid.txt"
@@ -30,17 +30,23 @@ col_score = "./tmp/calc_col_score/_col_col.scr"
 sigma = 1.0
 beta = 0.0
 theta = 0.4
-threshold = 1.0
+threshold = 0
 output_file = "result.msa"
 killed_stage = 0
 model_ = "./classifier/model/branch/abc.joblib"
 para_ = "./classifier/model/branch/para.txt"
-
+which_part = 0
 model_lens = "./classifier/model/seq_lens/randomforest.joblib"
 para_lens = "./classifier/model/seq_lens/para.txt"
+model_lens_short = "./classifier/model/seq_lens_short/randomforest.joblib"
+para_lens_short = "./classifier/model/seq_lens_short/para.txt"
 
 model_region = "./classifier/model/regions/randomforest.joblib"
 para_region = "./classifier/model/regions/para.txt"
+model_region_short = "./classifier/model/regions_short/randomforest.joblib"
+para_region_short = "./classifier/model/regions_short/para.txt"
+
+mafft = "mafft"
 
 class_region = 0
 
@@ -90,7 +96,6 @@ def Calculate(len_family, len_seq):
             sd_sp += ( dic[dickeys[i]] - avg_sp ) ** 2
     sd_sp /= len_seq
     sd_sp = math.sqrt(sd_sp)
-
     peak_length_ratio = 0.0
     for i in range(len(dickeys)):
         if int(dickeys[i]) < len_seq:
@@ -105,13 +110,15 @@ def Calculate(len_family, len_seq):
         peak_length_ratio = 0
     return [avg_sp, peak_length_ratio]
 
-def getPID(seq_file):
+def getPID(seq_file, which_part):
     global avg_PID
     global sd_PID
     global killed_stage
     os.system(pnp_getpid_path + seq_file)
     sd_PID, tmp_list1 = ReadFile()
     avg_PID = float(tmp_list1[0])
+    if which_part == 0:
+        return [avg_PID]
     tmp_list2 = Calculate(int(tmp_list1[1]), int(tmp_list1[2]))
     tmp_list = []
     for i in tmp_list1:
@@ -153,7 +160,10 @@ def TestClassifier(test_list):
 def getMSA(class_, seq_file):
     global killed_stage
     print("MSA process is begining ...")
-    os.system(pnp_getmsa_path + str(class_) + " " + seq_file + real_pnp_output)
+    if class_ < 2:
+        os.system(pnp_getmsa_path + str(class_) + " " + seq_file + real_pnp_output)
+    else:
+        os.system(mafft + " " + seq_file + " > " + real_output)
     if not os.path.exists(real_output):
         killed_stage = 2
         return
@@ -164,64 +174,15 @@ def getMSA(class_, seq_file):
     processingHead_MSA(real_output)
     print("MSA process ended.")
 
-def getAlternativeMSA(class_, seq_file):
-    global killed_stage
-    if killed_stage == 2:
-        return
-    tmp_file_num = 0
-    getTail(seq_file, tmp_tail_path)
-    print("Alternative MSA processes is begining ...")
-    os.system(pnp_getmsa_path + str(1 - int(class_)) + " " + seq_file + " -o ./tmp/alternative_msa/1.msa")
-    os.system(pnp_getmsa_path + str(class_) + " " + tmp_tail_path + " -o ./tmp/alternative_msa/2.msa")
-    os.system(pnp_getmsa_path + str(1 - int(class_)) + " " + tmp_tail_path + " -o ./tmp/alternative_msa/3.msa")
-    if not os.path.exists("./tmp/alternative_msa/1.msa"):
-        tmp_file_num += 1
-    else:
-        if not os.path.getsize("./tmp/alternative_msa/1.msa"):
-            tmp_file_num += 1
-            os.system("rm ./tmp/alternative_msa/1.msa")
-        else:
-            processingHead_MSA("./tmp/alternative_msa/1.msa")
-
-    if not os.path.exists("./tmp/alternative_msa/2.msa"):
-        tmp_file_num += 1
-    else:
-        if not os.path.getsize("./tmp/alternative_msa/2.msa"):
-            tmp_file_num += 1
-            os.system("rm ./tmp/alternative_msa/2.msa")
-        else:
-            reverseTail_MSA("./tmp/alternative_msa/2.msa")
-
-    if not os.path.exists("./tmp/alternative_msa/3.msa"):
-        tmp_file_num += 1
-    else:
-        if not os.path.getsize("./tmp/alternative_msa/3.msa"):
-            tmp_file_num += 1
-            os.system("rm ./tmp/alternative_msa/3.msa")
-        else:
-            reverseTail_MSA("./tmp/alternative_msa/3.msa")
-
-    print("Alternative MSA processes ended.")
-    if tmp_file_num < 3:
-        print("Calculating HoT Column Scores...")
-        os.system("./calc_col_score/calc_col_score " + real_output + calc_col_score_prefix + alternative_msa_path)
-        print("Calculated HoT Column Scores.")
-    else:
-        killed_stage = 3
-
-
 def Refresh():
     os.system("rm -rf ./tmp")
     os.system("mkdir ./tmp")
     os.system("mkdir ./tmp/calc_col_score")
-    os.system("mkdir ./tmp/alternative_msa")
     os.system("mkdir ./tmp/seperate_regions")
     os.system("mkdir ./tmp/tmp_pid")
 
 def seperateRegions(seq_file, col_score, sigma, beta, class_lens):
     global killed_stage
-    # if not (os.path.exists("./tmp/alternative_msa/1.msa") and os.path.exists("./tmp/alternative_msa/2.msa") and os.path.exists("./tmp/alternative_msa/3.msa")):
-    #     killed_stage = 3
     if killed_stage != 2:
         if killed_stage != 3:
             if not os.path.exists(col_score):
@@ -239,10 +200,9 @@ def seperateRegions(seq_file, col_score, sigma, beta, class_lens):
             killed_stage = 4
     else:
         killed_stage = 4
-        #Align_ClustalW2(seq_file)
         os.system(quickprobs + " " + seq_file + " > " + output_file)
 
-def SeperateReliableRegions(seq_file, col_score):
+def SeperateReliableRegions(seq_file, col_score, which_part):
     global killed_stage
     if killed_stage != 2:
         if killed_stage != 3:
@@ -254,9 +214,11 @@ def SeperateReliableRegions(seq_file, col_score):
                     killed_stage = 4
                     return
             print("Seperating Reliable Regions...")
-            Quickprobs(seq_file, dir_output)
-            #reliable_regions = GetReliableRegions(col_score, threshold, 0, seq_file)
-            #seperateReliableRegions(reliable_regions, real_output, dir_output)
+            if int(which_part) == 1:
+                Quickprobs(seq_file, dir_output)
+            else:
+                reliable_regions = GetReliableRegions(col_score, threshold, 0, seq_file)
+                seperateReliableRegions(reliable_regions, real_output, dir_output)
             print("Seperated Reliable Regions.")
         else:
             killed_stage = 4
@@ -267,10 +229,13 @@ def SeperateReliableRegions(seq_file, col_score):
 def Move(file_in, file_out):
     os.system("cp "+ file_in + " " + file_out)
 
-def getRegionsLength(len_seqs, len_family, avg_PID, sd_PID, un_sp):
+def getRegionsLength(len_seqs, len_family, avg_PID, sd_PID, un_sp, which_part):
     class_lens = 3
     test = [len_seqs, len_family, avg_PID, sd_PID, un_sp]
     para = []
+    if int(which_part) == 0:
+        para_lens = para_lens_short
+        model_lens = model_lens_short
     with open(para_lens, 'r') as filein:
         file_context = filein.read().splitlines()
         for i in range(2 * len(test)):
@@ -284,10 +249,13 @@ def getRegionsLength(len_seqs, len_family, avg_PID, sd_PID, un_sp):
         class_lens = 3
     return class_lens
 
-def getRegions_to_Realign(peak_length_ratio, avg_PID, sd_un_sp, un_sp):
+def getRegions_to_Realign(peak_length_ratio, avg_PID, sd_un_sp, un_sp, which_part):
     class_region = 1
     test = [peak_length_ratio, avg_PID, sd_un_sp, un_sp]
     para = []
+    if which_part == 0:
+        para_region = para_region_short
+        model_region = model_region_short
     with open(para_region, 'r') as filein:
         file_context = filein.read().splitlines()
         for i in range(2 * len(test)):
@@ -304,24 +272,33 @@ def getRegions_to_Realign(peak_length_ratio, avg_PID, sd_un_sp, un_sp):
 if __name__ == "__main__":
     Refresh()
     seq_file = sys.argv[1]
-    if len(sys.argv) > 2:
-        output_file = sys.argv[2]
-    test_list = getPID(seq_file)
-    class_ = TestClassifier(test_list)
+    if len(sys.argv) >= 2:
+        if sys.argv[2] == "-s":
+            which_part = 0
+        elif sys.argv[2] == "-b":
+            which_part = 1
+        else:
+            print("The 2nd option is wrong! Use the default option.")
+            which_part = 1
+        if len(sys.argv) > 3:
+            output_file = sys.argv[3]
+    test_list = getPID(seq_file, which_part)
+    if which_part == 1:
+        class_ = TestClassifier(test_list)
+    else:
+        class_ = 2
     getMSA(class_, seq_file)
-    # getAlternativeMSA(class_, seq_file)
     un_sp, len_seqs, len_family, sd_un_sp, peak_length_ratio = detect_unreliable_regions(real_output, col_score)
-    class_region = getRegions_to_Realign(peak_length_ratio, avg_PID, sd_un_sp, un_sp)
+    class_region = getRegions_to_Realign(peak_length_ratio, avg_PID, sd_un_sp, un_sp, which_part)
     if int(class_region) == 0:
         print("Choose to Realign Reliable Regions!")
     else:
         print("Choose to Realign Unreliable Regions!")
-
     if int(class_region) == 1:
-        class_lens = getRegionsLength(len_seqs, len_family, avg_PID, sd_PID, un_sp)
+        class_lens = getRegionsLength(len_seqs, len_family, avg_PID, sd_PID, un_sp, which_part)
         seperateRegions(seq_file, col_score, sigma, beta, class_lens)
     else:
-        SeperateReliableRegions(seq_file, col_score)
+        SeperateReliableRegions(seq_file, col_score, which_part)
 
     if killed_stage != 4:
         print("Realign !!!")
@@ -336,26 +313,12 @@ if __name__ == "__main__":
             Move(real_output, output_file)
         else:
             if not os.path.exists(output_file):
-                #Align_ClustalW2(seq_file)
                 os.system(quickprobs + " " + seq_file + " > " + output_file)
             else:
                 if not os.path.getsize(output_file):
-                    #Align_ClustalW2(seq_file)
                     os.system(quickprobs + " " + seq_file + " > " + output_file)
     killed_stage = 0
     # Move(real_output, output_file)
     if not os.path.getsize(output_file):
         print("Result is Empty ?")
-        #Align_ClustalW2(seq_file)
         os.system(quickprobs + " " + seq_file + " > " + output_file)
-    # if len_seqs == 0:
-    #     len_seqs, len_family = getLengthSeq(output_file)
-    #
-    # file_write = open("./tmp/train_write.txt", 'w')
-    # file_write.write(seq_file + "\t")
-    # file_write.write(str(len_seqs) + "\t")
-    # file_write.write(str(len_family) + "\t")
-    # file_write.write(str(avg_PID) + "\t")
-    # file_write.write(str(sd_PID) + "\t")
-    # file_write.write(str(un_sp) + "\n")
-    # file_write.close()

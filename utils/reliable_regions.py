@@ -40,7 +40,6 @@ def Quickprobs(seq_file, dir_output):
 
 def GetReliableRegions(col_score, threshold, class_lens_, seq_file):
     divide_lens = 10
-
     num_score = []
     last_col = 0
     with open(col_score, 'r') as filein:
@@ -74,10 +73,7 @@ def GetReliableRegions(col_score, threshold, class_lens_, seq_file):
             tmp_1 = 0
             tmp_2 = 0
             tmp_head = 0
-
     return reliable_regions
-
-
 
 def seperateReliableRegions(reliable_regions, real_output, dir_output):
     filein = open(real_output, 'r')
