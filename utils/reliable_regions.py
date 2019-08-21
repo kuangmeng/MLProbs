@@ -40,32 +40,26 @@ def Quickprobs(seq_file, dir_output):
 
 def GetReliableRegions(col_score, threshold, class_lens_, seq_file):
     divide_lens = 10
-    num_score = []
-    last_col = 0
-    with open(col_score, 'r') as filein:
-        file_context = filein.read().splitlines()
-        for i in range(1, len(file_context) - 1):
-            num_score.append(file_context[i].split())
-            last_col = file_context[i].split()[0]
+    last_col = len(col_score) - 1
     reliable_regions = []
     tmp_1 = 0
     tmp_2 = 0
     tmp_head = 0
-    for item in num_score:
-        if float(item[1]) >= threshold and tmp_1 == 0:
-            tmp_head = int(item[0])
+    for item in range(len(col_score)):
+        if float(col_score[item]) >= threshold and tmp_1 == 0:
+            tmp_head = int(item) + 1
             tmp_1 = 1
-        elif float(item[1]) >= threshold and tmp_1 == 1 and tmp_2 == 0:
+        elif float(col_score[item]) >= threshold and tmp_1 == 1 and tmp_2 == 0:
             tmp_2 = 1
-        elif float(item[1]) >= threshold and tmp_1 == 1 and tmp_2 == 1:
-            if item[0] == last_col:
-                if int(item[0]) - int(tmp_head) > divide_lens:
-                    reliable_regions.append([int(tmp_head), int(item[0]) - 1])
+        elif float(col_score[item]) >= threshold and tmp_1 == 1 and tmp_2 == 1:
+            if item == last_col:
+                if int(item) - int(tmp_head) > divide_lens:
+                    reliable_regions.append([int(tmp_head), int(item)])
             else:
                 continue
-        elif float(item[1]) < threshold and tmp_1 == 1 and tmp_2 == 1:
-            if int(item[0]) - int(tmp_head) > divide_lens:
-                reliable_regions.append([int(tmp_head), int(item[0]) - 1])
+        elif float(col_score[item]) < threshold and tmp_1 == 1 and tmp_2 == 1:
+            if int(item) - int(tmp_head) > divide_lens:
+                reliable_regions.append([int(tmp_head), int(item)])
             tmp_1 = 0
             tmp_2 = 0
             tmp_head = 0
@@ -76,9 +70,7 @@ def GetReliableRegions(col_score, threshold, class_lens_, seq_file):
     return reliable_regions
 
 def seperateReliableRegions(reliable_regions, real_output, dir_output):
-    filein = open(real_output, 'r')
-    file_context = filein.read().splitlines()
-    filein.close()
+    file_context = real_output.split("\n")
     dic = {}
     has_key = False
     value = ""
@@ -98,7 +90,9 @@ def seperateReliableRegions(reliable_regions, real_output, dir_output):
     lens = len(value)
     dickeys = sorted(dic.keys())
     if len(reliable_regions) == 0:
-        os.system("cp " + real_output + " " + dir_output + "0-" + str(lens - 1) + ".reliable")
+        with open(dir_output + "0-" + str(lens - 1) + ".reliable", 'w') as filein:
+            for line in file_context:
+                filein.write(line + "\n")
     else:
         if int(reliable_regions[0][0]) > 1:
             fileout = open(dir_output + "0-" + str(int(reliable_regions[0][0]) - 2) + ".reliable", 'w')

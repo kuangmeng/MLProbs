@@ -2,6 +2,7 @@
 #include <sstream>
 #include <iomanip>
 #include <iostream>
+#include <map>
 #include <list>
 #include <set>
 #include <algorithm>
@@ -13,10 +14,10 @@
 #include "MSA.h"
 #include "MSAClusterTree.h"
 #include "Defaults.h"
-
+#define MAX_ARR 10000
 #include <sys/time.h>
 #include <time.h>
-
+using namespace std;
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -151,14 +152,17 @@ MSA::MSA(int argc, char* argv[]) {
 #endif
 //getPID !!!!
 if (just_getpid){
-	string pid = Alter_ModelAdjustmentTest( sequences );
+	string pid = Alter_ModelAdjustmentTest( sequences, 1.0 );
+	
 	ofstream outfile;
 	outfile.open("./tmp/tmp_pid.txt", ios::out);
 	// 向文件写入用户输入的数据
 	outfile << pid << endl;
 	// 关闭打开的文件
 	outfile.close();
-	return;
+
+	cout << pid << endl;
+	return ;
 }
 
 
@@ -175,11 +179,7 @@ if (just_getpid){
 	else alignment = npdoAlign( sequences, variance_mean ); //non-progressive
 
 	//write the alignment results to standard output
-	if (enableClustalWOutput) {
-		alignment->WriteALN(*alignOutFile);
-	} else {
-		alignment->WriteMFA(*alignOutFile);
-	}
+	alignment->WriteMFA(*alignOutFile);
 	//release resources
 	delete alignment;
 	delete[] this->seqsWeights;
@@ -643,19 +643,17 @@ void MSA::PrintParameters(const char *message, const VF &initDistrib,
 // Computes the average percent identity for a particular family.
 /////////////////////////////////////////////////////////////////
 
-string MSA::Alter_ModelAdjustmentTest(MultiSequence *sequences){
+string MSA::Alter_ModelAdjustmentTest(MultiSequence *sequences, float theta){
 	assert(sequences);
 
-	//get the number of sequences
 	const int numSeqs = sequences->GetNumSequences();
-	//initialize hmm model
 	ProbabilisticModel model(initDistrib, gapOpen, gapExtend, emitPairs,emitSingle);
-    //average identity for all sequences
     float identity = 0;
-		float sumofpairs = 0;
-
+		int max_length_pair = 0;
+		int tmp_sp_idx = 0;
+		float tmp_sp = 0;
+		float* new_final_arr = new float[MAX_ARR]();
 #ifdef _OPENMP
-	//calculate sequence pairs for openmp model
 	int pairIdx = 0;
 	numPairs = (numSeqs - 1) * numSeqs / 2;
 	seqsPairs = new SeqsPair[numPairs];
@@ -668,8 +666,6 @@ string MSA::Alter_ModelAdjustmentTest(MultiSequence *sequences){
 	}
 #endif
 
-	// do all pairwise alignments for family similarity
-	//store percent identity of every pair sequences
 	float* PIDs = new float[ (numSeqs - 1) * numSeqs / 2 * sizeof(float) ];
  float* SOPs = new float[ (numSeqs - 1) * numSeqs / 2 * sizeof(float) ];
  int avg_length = 0;
@@ -688,60 +684,71 @@ string MSA::Alter_ModelAdjustmentTest(MultiSequence *sequences){
 		for (int b = a + 1; b < numSeqs; b++) {
 			pairIdx++;
 #endif
-			ofstream outfiles;
-			outfiles.open("./tmp/tmp_pid/tmp" + to_string(a) +"_" + to_string(b) + ".txt", ios::app);
  			int num_idx = 0;
 			Sequence *seq1 = sequences->GetSequence(a);
 			Sequence *seq2 = sequences->GetSequence(b);
 			pair<SafeVector<char> *, float> alignment = model.ComputeViterbiAlignment(seq1,seq2);
 			SafeVector<char>::iterator iter1 = seq1->GetDataPtr();
     		SafeVector<char>::iterator iter2 = seq2->GetDataPtr();
-			avg_length += alignment.first -> size();
+				avg_length += alignment.first -> size();
+				if(alignment.first -> size() > max_length_pair){
+					max_length_pair = alignment.first -> size();
+				}
             float N_correct_match = 0;
 						float N_emit = 0;
-			//float N_alignment = 0;
             int i = 1;int j = 1;
 			for (SafeVector<char>::iterator iter = alignment.first->begin();
 				iter != alignment.first->end(); ++iter){
-				//N_alignment += 1;
 				if (*iter == 'B'){
 					unsigned char c1 = (unsigned char) iter1[i++];
 					unsigned char c2 = (unsigned char) iter2[j++];
    					if(c1==c2) N_correct_match += 1;
 						N_emit += emitPairsDefault[alphabetDefault.find(c1)][alphabetDefault.find(c2)];
-						outfiles << num_idx <<"\t"<< BLOSUM62[alphabetDefault.find(c1)][alphabetDefault.find(c2)] <<"\t";
+						if (BLOSUM62[alphabetDefault.find(c1)][alphabetDefault.find(c2)] < 10){
+							new_final_arr[num_idx] += BLOSUM62[alphabetDefault.find(c1)][alphabetDefault.find(c2)];
+							tmp_sp += BLOSUM62[alphabetDefault.find(c1)][alphabetDefault.find(c2)];
+						}else{
+							new_final_arr[num_idx] += 0;
+						}
+
+						tmp_sp_idx += 1;
 						num_idx ++;
 				}
 
 				else if(*iter == 'X'){
           i++;
-          outfiles << num_idx <<"\t"<< 0 << "\t";
           num_idx ++;
+					tmp_sp_idx += 1;
         }
  				else if(*iter == 'Y'){
            j++;
-           outfiles << num_idx <<"\t"<< 0 <<"\t";
            num_idx ++;
+					 tmp_sp_idx += 1;
         }
             }
             if(i!= seq1->GetLength()+1 || j!= seq2->GetLength() + 1 ) cerr << "percent identity error"<< endl;
             PIDs[pairIdx] = N_correct_match / alignment.first->size();
             identity += N_correct_match / alignment.first->size();
-						sumofpairs += N_emit / alignment.first->size();
 						SOPs[pairIdx] =  N_emit;
-			//identity += N_correct_match / alignment.first->size();
 			delete alignment.first;
 #ifndef _OPENMP
 		}
 #endif
 	}
+
+tmp_sp /= tmp_sp_idx;
 	identity /=  ( (numSeqs-1)*numSeqs/2 );//average percent identity
-	sumofpairs /= ( (numSeqs-1)*numSeqs/2 );
 	avg_length /= ( (numSeqs-1)*numSeqs/2 );
-	if (sumofpairs > 1 ){
-		sumofpairs = 0;
-	}
-	//compute the variance
+float peak_length_ = 0;
+ int tmp_i = 0;
+ for(tmp_i;  tmp_i < max_length_pair; tmp_i ++){
+	 new_final_arr[tmp_i] /= ((numSeqs-1)*numSeqs/2 );
+	 if (theta <= new_final_arr[tmp_i]){
+		 peak_length_ += 1;
+	 }
+ }
+ peak_length_ /= max_length_pair;
+
 	float variance = 0;
 
 	for (int k = 0; k < (numSeqs-1)*numSeqs/2; k++) {
@@ -750,7 +757,7 @@ string MSA::Alter_ModelAdjustmentTest(MultiSequence *sequences){
 	variance /= ( (numSeqs-1)*numSeqs/2 );
 	variance = sqrt(variance);
 
-    return to_string(identity) + "\t" + to_string(variance) + "\t" + to_string(numSeqs) + "\t" + to_string(avg_length);
+    return to_string(identity) + "\t" + to_string(variance) + "\t" + to_string(numSeqs) + "\t" + to_string(avg_length) + "\t" + to_string(tmp_sp) + "\t" + to_string(peak_length_);
 }
 
 

@@ -29,11 +29,10 @@ def Preprocessing(bench, file, path):
             fileout_.write(line + "\n")
 
 def Run(prom, bench, file, path, i):
-    #Preprocessing(bench, file, path)
     f_t = os.path.exists("./output/" + bench)
     if not f_t:
         os.makedirs("./output/" + bench)
-    os.system("%s %s/%s/%s -s ./output/%s/%s" % (prom, path, bench + "/in", file, bench, file))
+    os.system("%s %s/%s/%s -b ./output/%s/%s" % (prom, path, bench + "/in", file, bench, file))
 
 def Compute(prom):
     path = "./bench_all"

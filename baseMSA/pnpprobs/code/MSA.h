@@ -57,7 +57,7 @@ private:
 	void ReadParameters();
 
     int ModelAdjustmentTest( MultiSequence *sequences );//Determine the Model
-		string Alter_ModelAdjustmentTest( MultiSequence *sequences );//Determine the Model
+		string Alter_ModelAdjustmentTest( MultiSequence *sequences, float theta );//Determine the Model
 
     MultiSequence *pdoAlign(MultiSequence *sequencen, const int variance_mean); //progressive alignment
     MultiSequence *npdoAlign(MultiSequence *sequencen, const int variance_mean); //non-progressive alignment

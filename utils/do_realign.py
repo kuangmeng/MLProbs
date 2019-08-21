@@ -46,7 +46,7 @@ def perprocess(real_output, real_out, tmp_array):
             else:
                 tmp_array.append(item)
 
-def do_Realign(class_, quick, realign_file):
+def do_Realign(class_, quick, clustalo, which_part, realign_file):
     ret_name = ""
     tmp_path = realign_file.split("/")
     for i in range(len(tmp_path) - 1):
@@ -58,7 +58,16 @@ def do_Realign(class_, quick, realign_file):
     tmp_array = []
     perprocess(realign_file, tmp_file, tmp_array)
     #os.system(pnp_path + str(class_) + " " + realign_file + " -o " + ret_name)
-    os.system(quick + " " + tmp_file + " > " + ret_name)
+    if int(which_part) == 0:
+        os.system(clustalo + " " + tmp_file + " > " + ret_name)
+    else:
+        os.system(quick + " " + tmp_file + " > " + ret_name)
+    if not os.path.exists(ret_name):
+        os.system("cp " +  realign_file + "  " + ret_name)
+    else:
+        if not os.path.getsize(ret_name):
+            os.system("cp " + realign_file  + "  " + ret_name)
+
     add_PerProcess(ret_name, tmp_array)
 
 def add_PerProcess(ret_name, tmp_save):
@@ -91,10 +100,10 @@ def add_PerProcess(ret_name, tmp_save):
             fileout.write(itm + "\n")
             fileout.write("-"*lens + "\n")
 
-def do_Realign_Dir(dir_output, class_, quick):
+def do_Realign_Dir(dir_output, class_, quick, clustalo, which_part):
     realign_file_list = Realign_file_list(dir_output)
     for file in realign_file_list:
-        do_Realign(class_, quick, file)
+        do_Realign(class_, quick, clustalo, which_part, file)
 
 def getFile_Len(filename):
     seq_file_lens = 0

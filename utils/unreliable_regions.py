@@ -8,43 +8,33 @@ Created on Sat Jun 22 16:54:37 2019
 import os
 from Detect_Unreliable_Family import Detect_Unreliable
 def getUnreliableRegions(sigma, beta, theta, threshold, col_score, seq_file, real_output, class_lens):
-    # if Detect_Unreliable(theta, threshold, col_score, seq_file, real_output):
-    #     return []
     lens_seq_4_devide = 30
     if int(class_lens) == 2:
         lens_seq_4_devide = 20
     if int(class_lens) == 1:
         lens_seq_4_devide = 10
     elif int(class_lens) == 0:
-        lens_seq_4_devide = 0
-    last_col = 0
-    num_score = []
-    with open(col_score, 'r') as filein:
-        file_context = filein.read().splitlines()
-        for i in range(1, len(file_context) - 1):
-            num_score.append(file_context[i].split())
-            last_col = file_context[i].split()[0]
+        lens_seq_4_devide = 1
+    last_col = len(col_score) - 1
     unreliable_regions = []
     tmp_1 = 0
     tmp_2 = 0
     tmp_head = 0
-    for item in num_score:
-        if float(item[1]) <= sigma and float(item[1]) >= beta and tmp_1 == 0:
-            tmp_head = int(item[0])
+    for item in range(len(col_score)):
+        if float(col_score[item]) <= sigma and float(col_score[item]) >= beta and tmp_1 == 0:
+            tmp_head = int(item) + 1
             tmp_1 = 1
-        elif float(item[1]) <= sigma and float(item[1]) >= beta and tmp_1 == 1 and tmp_2 == 0:
+        elif float(col_score[item]) <= sigma and float(col_score[item]) >= beta and tmp_1 == 1 and tmp_2 == 0:
             tmp_2 = 1
-        elif float(item[1]) <= sigma and float(item[1]) >= beta and tmp_1 == 1 and tmp_2 == 1:
-            if item[0] == last_col:
-                #if (int(last_col) > 300 and int(item[0]) - int(tmp_head) > 15) or (int(last_col) < 300 and int(item[0]) - int(tmp_head) > 10):
-                if int(item[0]) - int(tmp_head) > lens_seq_4_devide:
-                    unreliable_regions.append([int(tmp_head), int(item[0]) - 1])
+        elif float(col_score[item]) <= sigma and float(col_score[item]) >= beta and tmp_1 == 1 and tmp_2 == 1:
+            if item  == last_col:
+                if int(item) - int(tmp_head) > lens_seq_4_devide:
+                    unreliable_regions.append([int(tmp_head), int(item)])
             else:
                 continue
-        elif (float(item[1]) > sigma or float(item[1]) < beta) and tmp_1 == 1 and tmp_2 == 1:
-            #if (int(last_col) > 300 and int(item[0]) - int(tmp_head) > 15) or (int(last_col) < 300 and int(item[0]) - int(tmp_head) > 10):
-            if int(item[0]) - int(tmp_head) > lens_seq_4_devide:
-                unreliable_regions.append([int(tmp_head), int(item[0]) - 1])
+        elif (float(col_score[item]) > sigma or float(col_score[item]) < beta) and tmp_1 == 1 and tmp_2 == 1:
+            if int(item) - int(tmp_head) > lens_seq_4_devide:
+                unreliable_regions.append([int(tmp_head), int(item)])
             tmp_1 = 0
             tmp_2 = 0
             tmp_head = 0
@@ -52,13 +42,10 @@ def getUnreliableRegions(sigma, beta, theta, threshold, col_score, seq_file, rea
             tmp_1 = 0
             tmp_2 = 0
             tmp_head = 0
-
     return unreliable_regions
 
 def seperateUnreliableRegions(unreliable_regions, real_output, dir_output):
-    filein = open(real_output, 'r')
-    file_context = filein.read().splitlines()
-    filein.close()
+    file_context = real_output.split("\n")
     dic = {}
     has_key = False
     value = ""
@@ -78,7 +65,9 @@ def seperateUnreliableRegions(unreliable_regions, real_output, dir_output):
     lens = len(value)
     dickeys = sorted(dic.keys())
     if len(unreliable_regions) == 0:
-        os.system("cp " + real_output + " " + dir_output + "0-" + str(lens - 1) + ".reliable")
+        with open(dir_output + "0-" + str(lens - 1) + ".reliable", 'w') as filein:
+            for line in file_context:
+                filein.write(line + "\n")
     else:
         if int(unreliable_regions[0][0]) > 1:
             fileout = open(dir_output + "0-" + str(int(unreliable_regions[0][0]) - 2) + ".reliable", 'w')

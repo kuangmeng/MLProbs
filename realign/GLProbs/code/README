@@ -1,0 +1,61 @@
+GLProbs (Version 1.0)
+
+GLProbs is a open source program to align multiple sequences adaptively.
+When query sequences are certain similar, GLProbs applies global model;
+they are medium similar, GLProbs makes good use of local model;
+And if they are divergent, GLProbs utilizes a combined model.
+The program is developed by YE Yongtao(ytye@cs.hku.hk,
+Department of Computer Science, The University of Hong Kong)
+based on MSAProbs 0.9.7 source code.
+-----------------------------------------------------------------
+
+Install:
+
+You will need a Unix environment with a working C++ compiler to
+compile the GLProbs source. 
+
+Type
+$ make
+$ make install
+
+If you want to clean the compiled results, you may type "make clean".
+
+-----------------------------------------------------------------
+
+Usage:
+       glprobs [OPTION]... [infile]...
+
+Description:
+       Align sequences in multi-FASTA format
+
+       -o, --outfile <string>
+              specify the output file name (STDOUT by default)
+
+       -num_threads <integer>
+              specify the number of threads used, and otherwise detect automatically
+
+       -clustalw
+              use CLUSTALW output format instead of FASTA format
+
+       -c, --consistency REPS
+              use 0 <= REPS <= 5 (default: 2) passes of consistency transformation
+
+       -ir, --iterative-refinement REPS
+              use 0 <= REPS <= 1000 (default: 100) passes of iterative-refinement
+
+       -v, --verbose
+              report progress while aligning (default: off)
+
+       -annot FILENAME
+              write annotation for multiple alignment to FILENAME
+
+       -a, --alignment-order
+              print sequences in alignment order rather than input order (default: off)
+
+       -version 
+              print out version of GLProbs 
+
+Typical used example:
+./glprobs infile >outfile or ./glprobs infile -o outfile
+N.B. The alignments are printed out into file "outfile" in FASTA format
+
