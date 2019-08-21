@@ -153,14 +153,14 @@ MSA::MSA(int argc, char* argv[]) {
 //getPID !!!!
 if (just_getpid){
 	string pid = Alter_ModelAdjustmentTest( sequences, 1.0 );
-	
+	/*
 	ofstream outfile;
 	outfile.open("./tmp/tmp_pid.txt", ios::out);
 	// 向文件写入用户输入的数据
 	outfile << pid << endl;
 	// 关闭打开的文件
 	outfile.close();
-
+*/
 	cout << pid << endl;
 	return ;
 }
