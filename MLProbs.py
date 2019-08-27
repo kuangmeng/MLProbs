@@ -26,7 +26,7 @@ theta = 0.4
 threshold = 1.0
 
 quickprobs =  "./realign/QuickProbs/bin/quickprobs "
-mafft = "./realign/QuickProbs/bin/quickprobs "
+realign_short = "./realign/QuickProbs/bin/quickprobs "
 
 pnp_getpid_path = "./baseMSA/PnpProbs/alter_pnpprobs -G "
 pnp_getmsa_path = "./baseMSA/PnpProbs/alter_pnpprobs -p "
@@ -278,7 +278,7 @@ if __name__ == "__main__":
 
     if killed_stage != 4:
         print("Realign !!!")
-        do_Realign_Dir(dir_output, class_, quickprobs, mafft, which_part)
+        do_Realign_Dir(dir_output, class_, quickprobs, realign_short, which_part)
         realign_time = time.time()
         print("Realign time: %.3f s"%(realign_time - class2_time))
         print("Combination !!!")
@@ -288,15 +288,11 @@ if __name__ == "__main__":
         total_time = end_time - start_time
         print("Total Running time: %.3f s"%(total_time))
     else:
-        if os.path.exists(real_output) and os.path.getsize(real_output):
-            print("Take the original output as Result!")
-            Move(real_output, output_file)
+        if not os.path.exists(output_file):
+            os.system(quickprobs + " " + seq_file + " > " + output_file)
         else:
-            if not os.path.exists(output_file):
+            if not os.path.getsize(output_file):
                 os.system(quickprobs + " " + seq_file + " > " + output_file)
-            else:
-                if not os.path.getsize(output_file):
-                    os.system(quickprobs + " " + seq_file + " > " + output_file)
         end_time = time.time()
         total_time = end_time - start_time
         print("Total Running time: %.3f s"%(total_time))
