@@ -13,7 +13,7 @@ Please compile PnpProbs to `altered_pnpprobs` and move it to `./base_MSA/pnpprob
 
 Please compile QuickProbs to `quickprobs` and move it to `./realign/` path.
 
-Use "miniconda" or "pip" to install `sk-learn`, `subprocess`, `joblib`, `xlrd`, `xlwt` and so on.
+Use `miniconda` or `pip` to install `sk-learn`, `subprocess`, `joblib`, `xlrd`, `xlwt` and so on.
 
 
 ## Run
