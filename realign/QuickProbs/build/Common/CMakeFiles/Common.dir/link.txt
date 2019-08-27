@@ -1,0 +1,2 @@
+/usr/bin/ar qc libCommon.a  CMakeFiles/Common.dir/deterministic_random.cpp.o CMakeFiles/Common.dir/mathex.cpp.o CMakeFiles/Common.dir/Log.cpp.o CMakeFiles/Common.dir/ProgramOptions.cpp.o CMakeFiles/Common.dir/StatisticsProvider.cpp.o CMakeFiles/Common.dir/WindowsMemoryTools.cpp.o CMakeFiles/Common.dir/UnixMemoryTools.cpp.o
+/usr/bin/ranlib libCommon.a

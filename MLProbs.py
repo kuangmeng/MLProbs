@@ -25,11 +25,11 @@ beta = 0.0
 theta = 0.4
 threshold = 1.0
 
-quickprobs =  "./realign/quickprobs "
-mafft = "./realign/quickprobs "
+quickprobs =  "./realign/QuickProbs/bin/quickprobs "
+mafft = "./realign/QuickProbs/bin/quickprobs "
 
-pnp_getpid_path = "./baseMSA/pnpprobs/alter_pnpprobs -G "
-pnp_getmsa_path = "./baseMSA/pnpprobs/alter_pnpprobs -p "
+pnp_getpid_path = "./baseMSA/PnpProbs/alter_pnpprobs -G "
+pnp_getmsa_path = "./baseMSA/PnpProbs/alter_pnpprobs -p "
 dir_output = "./tmp/seperate_regions/"
 
 col_score = []
@@ -45,8 +45,6 @@ which_part = 0
 
 model_lens = "./classifier/model/seq_lens/randomforest.joblib"
 para_lens = "./classifier/model/seq_lens/para.txt"
-model_lens_short = "./classifier/model/seq_lens_short/randomforest.joblib"
-para_lens_short = "./classifier/model/seq_lens_short/para.txt"
 
 model_region = "./classifier/model/regions/randomforest.joblib"
 para_region = "./classifier/model/regions/para.txt"
@@ -170,9 +168,6 @@ def getRegionsLength(len_seqs, len_family, avg_PID, sd_PID, un_sp, which_part):
     class_lens = 3
     test = [len_seqs, len_family, avg_PID, sd_PID, un_sp]
     para = []
-    if int(which_part) == 0:
-        para_lens = para_lens_short
-        model_lens = model_lens_short
     with open(para_lens, 'r') as filein:
         file_context = filein.read().splitlines()
         for i in range(2 * len(test)):
@@ -186,17 +181,12 @@ def getRegionsLength(len_seqs, len_family, avg_PID, sd_PID, un_sp, which_part):
         class_lens = 3
     return class_lens
 
-def getRegions_to_Realign(peak_length_ratio, avg_PID, sd_un_sp, un_sp, which_part):
+def getRegions_to_Realign(peak_length_ratio, avg_PID, sd_un_sp, un_sp):
     global para_region
-    global para_region_short
     global model_region
-    global model_region_short
     class_region = 1
     test = [peak_length_ratio, avg_PID, sd_un_sp, un_sp]
     para = []
-    if which_part == 0:
-        para_region = para_region_short
-        model_region = model_region_short
     with open(para_region, 'r') as filein:
         file_context = filein.read().splitlines()
         for i in range(2 * len(test)):
@@ -209,6 +199,27 @@ def getRegions_to_Realign(peak_length_ratio, avg_PID, sd_un_sp, un_sp, which_par
     if class_region > 1 or class_region < 0:
         class_region = 1
     return class_region
+
+
+def getRegions_to_Realign_short(peak_length_ratio, sd_un_sp, un_sp):
+    global para_region_short
+    global model_region_short
+    class_region = 1
+    test = [peak_length_ratio, sd_un_sp, un_sp]
+    para = []
+    with open(para_region_short, 'r') as filein:
+        file_context = filein.read().splitlines()
+        for i in range(2 * len(test)):
+            para.append(float(file_context[i]))
+    real_test = []
+    for i in range(len(test)):
+        real_test.append((float(test[i]) - para[i * 2 + 1])/ (para[i * 2] - para[i * 2 + 1]))
+    clf = load(model_region_short)
+    class_region = clf.predict([real_test])[0]
+    if class_region > 1 or class_region < 0:
+        class_region = 1
+    return class_region
+
 
 if __name__ == "__main__":
     start_time = time.time()
@@ -224,20 +235,27 @@ if __name__ == "__main__":
             which_part = 1
         if len(sys.argv) > 3:
             output_file = sys.argv[3]
-    test_list, prepare_data_1 = getPID(seq_file, which_part)
-    print("Prepare Data for Classifier 1 time: %.3f s"%(prepare_data_1 - start_time))
+    class1_time = 0
     if which_part == 1:
+        test_list, prepare_data_1 = getPID(seq_file, which_part)
+        print("Prepare Data for Classifier 1 time: %.3f s"%(prepare_data_1 - start_time))
         class_ = TestClassifier(test_list)
+        class1_time = time.time()
+        print("Classifier 1 time: %.3f s"%(class1_time - prepare_data_1))
     else:
         class_ = 2
-    class1_time = time.time()
-    print("Classifier 1 time: %.3f s"%(class1_time - prepare_data_1))
+        class1_time = start_time
     result_real_output = getMSA(class_, seq_file)
     base_msa_time = time.time()
     print("Get Base MSA time: %.3f s"%(base_msa_time - class1_time))
     prepare_data_2, col_score, un_sp, len_seqs, len_family, sd_un_sp, peak_length_ratio = detect_unreliable_regions(result_real_output)
     print("Prepare Data for Classifier 3 time: %.3f s"%(prepare_data_2 - base_msa_time))
-    class_region = getRegions_to_Realign(peak_length_ratio, avg_PID, sd_un_sp, un_sp, which_part)
+    class_region = 0
+    if which_part == 1:
+        class_region = getRegions_to_Realign(peak_length_ratio, avg_PID, sd_un_sp, un_sp)
+    else:
+        class_region = getRegions_to_Realign_short(peak_length_ratio, sd_un_sp, un_sp)
+
     if int(class_region) == 0:
         print("Choose to Realign Reliable Regions!")
     else:
@@ -249,7 +267,7 @@ if __name__ == "__main__":
         if int(which_part) == 1:
             class_lens = getRegionsLength(len_seqs, len_family, avg_PID, sd_PID, un_sp, which_part)
         else:
-            class_lens = 0
+            class_lens = 1
         seperateRegions(seq_file, col_score, sigma, beta, class_lens, result_real_output)
         class2_time = time.time()
         print("RUR time: %.3f s"%(class2_time - class3_time))

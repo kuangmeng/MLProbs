@@ -1,0 +1,653 @@
+Version 0.1
+
+Added:
+1.	Created KernelFactory class for intelligent kernel creation. OwnKernel class simplified.
+2.	ExtendedMSA class created which is just refactorized MSA class. 
+3.	OpenCL kernels use native_ operations.
+4.	Kernels gathered in functional groups.
+
+Algorithm changes:
+1.	Resetting 0'th row and 0'th column to 0 in ExtendedMSA during posterior matrix combination.
+2.	Calculation of total probabilities from forward and backward matrices included in forward and backward matrix calculation
+	(the are stored in top-left and right-bottom elements respectively).
+3.	Forward and backward matrix calculations are done in memory-saving pattern (we only store single layer).
+4.	Transposed sparse matrices are calculated simultanously with direct matrices and stored.
+5.	Horizontal and vertical sequences swapped in Partitionfunction.
+
+Todo:
+1.	Reduce alphabet of ProbabilisticModel from 256 symbols to 26 ones, so it becomes coherent with PartitionFunction.
+2	Passing tasks to OpenCL device in portions (global memory limits).
+3.	Kernel-based relaxation implementation.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 0.2
+
+Added:
+1.	Multithreaded kernels for ProbabilisticModel.
+2.	Multithreaded kernels for PartitionFunction.
+3.	Multithreaded kernels for Finalization.
+
+Algorithmic changes:
+1.	Probabilistic_ComputeForwardMatrix: Initialization of first column of forward matrix moved into algorithm loops.
+2.	Probabilistic_ComputeBackwardMatrix: Initialization of backward matrix moved into algorithm loops.
+3.	Probabilistic_ComputeForwardMatrix and Probabilistic_ComputeBackwardMatrix: Auxiliary q indices computed when accessing levels array.
+4.	Partition_ComputeForward: Only first row and first column of Forward initialized.
+5.	Partition_ComputeReverse: Only first row and first column of Reverse initialized.
+6.	Finalization: Calculation of last block element taken out from horizontal loop body.
+
+Todo:
+1.	Reduce alphabet of ProbabilisticModel from 256 symbols to 26 ones, so it becomes coherent with PartitionFunction.
+2.  Block sizes of length 1 do not work correctly.
+3.	Possible bug in Partition_ComputeForward (Zf update procecdure).
+4.	Possible bug in Partition_ComputeReverse (Zf update procecdure).
+5.	Bug in sparse matrix calculation for short sequences (tested on 3).
+6.	KernelMSA_Posterior: download from device sparse matrices only (not whole auxiliary buffer).
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 0.3
+
+Added:
+1.	Multithreaded kernels for Consistency transformation.
+2.	64 bit support.
+3.	Kernel-based sparse matrix calculation moved to SparseFactory class.
+4.	pairwise_kernels::SparseMatrix renamed to ExtendedSparseMatrix.
+
+Fixed:
+1.	Stack corruption in KernelFactory.
+2. 	Bug in Probabilistic_ComputeForwardMatrix and Probabilistic_ComputeBackwardMatrix element initializations.
+
+Algorithmic changes:
+1.	Passing posterior tasks to OpenCL device in waves (global memory limits).
+2.	In consistency step both Sij and Sji matrices for all i and j are calculated (beside last consistency repetition).
+
+Todo:
+1.	Reduce alphabet of ProbabilisticModel from 256 symbols to 26 ones, so it becomes coherent with PartitionFunction.
+2.  Block sizes of length 1 do not work correctly.
+3.	Possible bug in Partition_ComputeForward (Zf update procecdure).
+4.	Possible bug in Partition_ComputeReverse (Zf update procecdure).
+5.	Bug in sparse matrix calculation for short sequences (tested on 3).
+6.	KernelMSA_Posterior: download from device sparse matrices only (not whole auxiliary buffer).
+7.	Passing consistency tasks to OpenCL device in waves (global memory limits).
+8.	Correct pointer reassignments in Partition_ComputeForward and Partition_ComputeReverse.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 0.4
+
+Added:
+1.	Delta parameter added for each test (maximum between floats after casting to integers).
+2.	Integer types changed to size_t in memory calculations.
+3.	Statistics calculation added to MSA.cpp.
+4.	Solution reorganized a bit.
+5.	Kernels compiled in as resources.
+6.	Automatic adjustment of threadsPerTask parameter.
+7.	Kernel comilation reorganized.
+8.	Binaries saving added.
+9.	Task allocation depends on num_threads commandline parameter.
+
+Fixed:
+1. 	Bug in Probabilistic_ComputeForwardMatrix range checking.
+2.	WIN32 symbol not defined in x64 application.
+3.	All optimizations removed when compiling OpenCL kernels.
+4.	Alignment of auxiliary buffer changed to 8 byte boundaries.
+
+Algorithmic changes:
+1.	Pointer reassignments in Partition_ComputeForward and Partition_ComputeReverse changed to indices operations.
+2.	Passing consistency tasks to OpenCL device in waves (global memory limits).
+3.	Some arrays changed from int to unsigned int.
+4.	Partition function calculation changed to double.
+
+Todo:
+1.	Reduce alphabet of ProbabilisticModel from 256 symbols to 26 ones, so it becomes coherent with PartitionFunction.
+2.  Block sizes of length 1 do not work correctly.
+3.	Possible bug in Partition_ComputeForward (Zf update procecdure).
+4.	Possible bug in Partition_ComputeReverse (Zf update procecdure).
+5.	Bug in sparse matrix calculation for short sequences (tested on 3).
+6.	KernelMSA_Posterior: download from device sparse matrices only (not whole auxiliary buffer).
+7.	Problems in KernelMSA_Posterior.cpp when threadsPerTask = 10 and number of waves > 1.
+8.	Scoring array should be copied to local memory.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 0.5
+
+Added:
+1.	Reduce alphabet of ProbabilisticModel from 256 symbols to 26 ones, so it becomes coherent with PartitionFunction.
+2.	PartitionFunction and ProbabilisticModel suited for encoded sequences.
+3.	Scoring array should be copied to local memory.
+4.	Global memory accesses in Probabilistic kernels limited.
+
+Todo:
+2.  Block sizes of length 1 do not work correctly.
+3.	Possible bug in Partition_ComputeForward (Zf update procecdure).
+4.	Possible bug in Partition_ComputeReverse (Zf update procecdure).
+5.	Bug in sparse matrix calculation for short sequences (tested on 3 or smaller).
+6.	KernelMSA_Posterior: download from device sparse matrices only (not whole auxiliary buffer).
+7.	Problems in KernelMSA_Posterior.cpp when threadsPerTask = 10 and number of waves > 1.
+
+Version 0.6
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Algorithmic changes:
+1. New parallelization pattern in all Finalization, Probabilistic, Partition and Sparse kernels (beside GetPosterior).
+2. Jagged memory pattern introduced in all Finalization, Probabilistic Partition and Sparse kernels (beside GetPosterior).
+3. Auxiliary rows can be stored in global or local memory.
+4. Scoring matrices can be stored in global, constant or local memory. 
+5. Threads per task parameter removed from KernelMSA - it is always suited for longest sequence.
+6. LOOKUP_FLOAT and LOOKUP_DOUBLE versions distinguished in ScoreType.h and ScoreType.cl (double version used by default in CL and temporairly in H file).
+7. Error in MultipleConsistency (j index turned to k in Consistency invokation).
+8. Fixed error in sparse transposed matrix calculation (it prevented from proper execution of consistency transformation).
+9. KernelMSA_Posterior: downloading from device sparse matrices only (not whole auxiliary buffer - transfers consume more than 90%).
+
+Fixed:
+1.	Problems in KernelMSA_Posterior.cpp when threadsPerTask = 10 and number of waves > 1.
+
+Todo:
+1.	Possible bug in Partition_ComputeForward (Zf update procecdure).
+2.	Possible bug in Partition_ComputeReverse (Zf update procecdure).
+3.	Bug in KernelMSA_Posterior when local memory is used and number of waves > 1 ("Out of resources").
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 0.7
+
+Changes:
+1. Consistency_relax: calculation scheme changed to more parallel.
+2. Consistency_filter: calculation scheme changed to more parallel.
+3. Multiple_relax: posterior matrix weighting changed to more parallel.
+4. Sparse matrix kernels divided to Jagged and Flat types.
+5. Fixed bug in sparse matrix calculation when sequences are of different lengths and number of sequences is small and local memory is used (rowSize increased by 2).
+6. Fixed time reporting error in KernelMSA_Relaxation.
+
+Todo:
+1.	Possible bug in Partition_ComputeForward (Zf update procecdure).
+2.	Possible bug in Partition_ComputeReverse (Zf update procecdure).
+3.	Bug in KernelMSA_Posterior when local memory is used and number of waves > 1 ("Out of resources").
+4.	SparseMatrix_Jagged: Reading posterior cells from global memory twice.
+5.	Bug: Filtering not working in new consistency transformation implementation.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 0.8
+
+Chnges:
+1. Matrix multiplication in consistency transformation is performed only on sparse representation.
+2. Multiple rows of single sparse matrix are processed concurently.
+3. Fixed: Filtering not working in new consistency transformation implementation.
+4. Posterior calculations in consistency experiments are done using kernel implementation. 
+5. Regex and filesystem dependencies removed.
+6. Consistency kernel highly simplified.
+7. Register requirements reduced:
+	"Finalization_ComputeAll" 46
+	"Partition_ComputeReverse" 43
+	"Partition_ComputeAll" 43
+	"Partition_ComputeForward" 32
+	"Probabilistic_ComputeAll" 29
+	"Probabilistic_ComputeForwardMatrix" 27
+	"Probabilistic_ComputeBackwardMatrix" 23
+	"Probabilistic_ComputePosteriorMatrix" 14
+	"Finalization_CombineMatrices" 13
+8. Offsets, sizes and rows of Szy elements can be copied.
+9. Sparse matrix calculation improved.
+10. Sparse rows alignment parameter introduced.
+11. GPU consistency implementation works for more than one interation.
+12. Removed bug with wrong posterior calcuation on real data (error in Finalization_CombineMatrices).
+13. Kernel profiling added for pairwise kernels.
+14. Fixed SparseMatrix_Jagged: Reading posterior cells from global memory twice.
+15. Some stuff related to sparse matrices removed from AuxiliaryStructures.cl.
+
+Todo:
+1.	Possible bug in Partition_ComputeForward (Zf update procecdure).
+2.	Possible bug in Partition_ComputeReverse (Zf update procecdure).
+3.	Bug in KernelMSA_Posterior when local memory is used and number of waves > 1 ("Out of resources").
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 0.9
+
+Changes:
+1.	Removed all unneccessary kernels.
+2.	Fixed bug with multiple size reading from global memory in MultipleConsistency_old.
+3.	Many relaxation variatns available:
+	+ old (outer row iteration, inner sequence iteration, no hashing),
+	+ reversed (outer sequence iteration, inner row iteration, no hashing), 
+	- striped,
+	+ binary search based.
+	+ binary striped reversed (38 registers).
+4.	Fixed bug in SparseMatrix_GenerateTranspose (wrong size and index pointers were used).
+5.	Zm, Ze, Zf overflow checking removed from original implementation (MSAPartProbs.cpp). 
+6.	Removed assertion for empty sparse matrices (sometimes they appear).
+7.	Refactorisation in ExtendedMSA project (algorithm core decoupled from kernel wrappers).
+8.	Parallel implementation of refinement added. 
+9.	Checked different task sortinbg criteria (horizontal length, vertical length, layer size, unsorted). Layer size is the best one.	 
+10. Binary striped variant algorithm set as main (38 registers, fixed error in binary search, fixed error when many stripes).
+
+
+Todo:
+1.	Possible bug in Partition_ComputeForward (Zf update procecdure).
+2.	Possible bug in Partition_ComputeReverse (Zf update procecdure).
+3.	Bug in KernelMSA_Posterior when local memory is used and number of waves > 1 ("Out of resources").
+4.	Add Zm, Ze, Zf saturating in MSAPartProbs.cpp and Partition.cl  
+5.  Store lengths + 1 instead of lengths themselves.
+6.	Add support of 1024 and longer sequences.
+7.	Optimize binary search.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 0.91
+
+Changes:
+1.	Code cleaning in ExtendedMSA (unneccessary files removed).
+2.	Some register optimizations done in MultipleConsistency_Final (now it is 36).
+3.	Kernel build log shown on the console.
+4.	Some unneccesary bound checking removed from MultipleConsistency_Final.
+5.	Some defines moved from AuxiliaryStructures to KernelMSA class and passed to kernel compilation.
+6.	Binary search pasted directly in code.
+7.	Invariant condition added to binary search to make it fully operating (it is commented though). 
+8.  	Sequence swapping in posterior calculation turned on.
+9.  	Local memory row requirement reduced slightly. 
+10.  	Store lengths + 1 instead of lengths themselves in relaxation kernel.
+11.	Add support of 1024 and longer sequences.
+
+
+Todo:
+1.	Possible bug in Partition_ComputeForward (Zf update procecdure).
+2.	Possible bug in Partition_ComputeReverse (Zf update procecdure).
+3.	Bug in KernelMSA_Posterior when local memory is used and number of waves > 1 ("Out of resources").
+4.	Add Zm, Ze, Zf saturating in MSAPartProbs.cpp and Partition.cl  
+5.	Remove adjustable row alignments from sparse matrices.
+ 
+------------------------------------------------------------------------------------------------------------------------------------- 
+ 
+Version 0.92 - RC1
+
+Changes:
+1. Posterior kernels optimized.
+	"Finalization_ComputeAll" 43
+	"Partition_ComputeReverse" 41
+	"Partition_ComputeAll" 41
+	"Partition_ComputeForward" 32
+	"Probabilistic_ComputeAll" 29
+	"Probabilistic_ComputeForwardMatrix" 27
+	"Probabilistic_ComputeBackwardMatrix" 24
+	"Probabilistic_ComputePosteriorMatrix" 14
+	"Finalization_CombineMatrices" 13
+2. Relaxation performed only for Pij such that i < j. Pji matrices are calculated on CPU using OpenMP. 
+3. Lots of unnecessary classes removed from Common project.
+4. Dependency of boost/property_tree removed.
+5. Fixed local memory requirement calculation.
+6. Posterior task sorting improved.
+
+Todo:
+1.	Possible bug in Partition_ComputeForward (Zf update procecdure).
+2.	Possible bug in Partition_ComputeReverse (Zf update procecdure).
+3.	Bug in KernelMSA_Posterior when local memory is used and number of waves > 1 ("Out of resources").
+4.	Add Zm, Ze, Zf saturating in MSAPartProbs.cpp and Partition.cl  
+5.	Remove adjustable row alignments from sparse matrices.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 0.93 - RC2
+
+Changes:
+1. Partition kernel auxiliary matrix reduced from 48 to 32 bytes per sequence symbol (optional).
+2. Probabilistic kernel auxiliary matrix reduced from 40 to 32 bytes per sequence symbol (optional).
+3. Memsetting level array in probabilistic kernel improved (there should be no bank conflicts).
+4. LOG_PLUS_EQUALS and LOG_ADD improved.
+5. LOOKUP optimised.
+6.	Fixed bug preventing from calculating two Balibase sets (30025, 40004) introduced by PartitionKernel 
+	(wrong calculation of local memory req).
+
+Todo:
+1.	Possible bug in Partition_ComputeForward (Zf update procecdure).
+2.	Possible bug in Partition_ComputeReverse (Zf update procecdure).
+3.	Bug in KernelMSA_Posterior when local memory is used and number of waves > 1 ("Out of resources").
+4.	Add Zm, Ze, Zf saturation in MSAPartProbs.cpp and Partition.cl  
+5.	Remove adjustable row alignments from sparse matrices.
+6.	Fix bug with reduced partition kernel on Radeon (BB12018). 
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 0.94 - RC3
+
+Changes:
+1.	Fixed bug with division by 0 in Paritition_ComputeReverse (crashed BB12018 set on Radeon). 
+2.	Strong equality changed to weak in sequence swapping.
+3.	Reorganization of tasks in waves (sorting by width, only first task is set vertically).
+4.	Smaller waves.
+5.	Adjustable row alignments removed from sparse matrices.
+6.  Sparse buffers flags set depending on GPU vendor (USE_HOST_PTR for NVidia, COPY_HOST_PTR for AMD).
+7.	stripeCount and stripeLength parameters are the same in NVidia and AMD.
+8.  Auto adjust of stripeCount parameter.
+9.	Host and device codes strongly decoupled (AuxililaryStructures.h header created).
+10.	Fixed bug with reduced probabilistic kernel (length of level rounded to the groupsize). 
+11. Sets for which sparse matrices won't fit on GPU memory relaxed on CPU now.
+12. Possible bugs in Partition_ComputeForward and Partition_ComputeReverse confirmed not to be bugs.
+13. Storing kernel binaries for AMD devices. 
+
+Todo:
+1.	Bug in KernelMSA_Posterior when local memory is used and number of waves > 1 ("Out of resources").
+2.	Add Zm, Ze, Zf saturation in MSAPartProbs.cpp and Partition.cl  
+3.  Calculation of dense and sparse memory in KernelMSA_Posterior performed only on GPU.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 1.0 - Paper release I
+
+Changes:
+1.	Unnecessary files removed from project.
+2.	MultipleConsistency_final.cl renamed to MultipleConsistency.cl.
+
+Todo:
+1.	Add Zm, Ze, Zf saturation in MSAPartProbs.cpp and Partition.cl  
+2.  Calculation of dense and sparse memory in KernelMSA_Posterior performed only on GPU.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 1.01 - Paper release II
+
+Changes:
+1.	Relaxation procedure executed in sectors.
+2.	Reorganised paramaters in relaxation and filtering kernels. 
+3.	Global->Private memory transfers in Relaxation kernel reorganised (done through local memory).
+4.  POSTERIOR_CUTOFF is now static member of SparseMatrix class and is passed to kernel compilation as parameter.
+5.	To save memory buffers in SparseMatrix class are deallocated in pack() and reallocated in unpack() methods.
+6.	Memory limit for posterior wave set to min(500MB, global memory size / 4).
+7.	Definitions of SparseMatrix functions were moved to SparseMatrix.cpp.
+8.	Auxiliary buffer in KernelMSA_Posterior changed from std::vector<float> to float* (efficiency reasons). 
+9.	Raw data buffer in KernelMSA_Relaxation changed from std::vector<int> to int* (efficiency reasons). 
+10.	SparseHelper class created.
+11. Transposition computation reimplemented in ExtendedSparseMatrix class in order to remove double construction.
+12.	Added possibility to compile kernels with register limitation on NVidia platforms.
+13.	Stripe configuration in consistency transformation set to 8-8 on both NVidia and AMD platforms.
+14. Calculation of dense and sparse memory in KernelMSA_Posterior performed on GPU and CPU.
+15. Quality mode included in the software.
+16. Filtered elements phisically removed from sparse matrices (not only changes to 0).
+17.	Number of cutoffs automatically determined.
+18. Corrected bug with local memory allocation (local memory requirements for relaxation kernel taken into account).
+
+Todo:
+1.	Add Zm, Ze, Zf saturation in MSAPartProbs.cpp and Partition.cl  
+2.	Random crashes at RelaxationWaveDestruction and construction. 
+3.  Sparse posterior cell calculation takes lots of time.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 1.02 - Cross-platform release
+
+Changes:
+1.	Fixed levels memory allocation error in ProbabilisticKernel wrapper (levels buffer set to workgroup size now).
+2.	Fixed errors in Finalization.cpp (POSTERIOR_CUTOFF was not passed to kernel).
+3.	CMake configuration files added.
+4.	KernelWrappers moved to testing projects.
+5.	Full Linux support.
+
+Todo:
+1.	Add Zm, Ze, Zf saturation in MSAPartProbs.cpp and Partition.cl  
+2.	Random crashes at RelaxationWaveDestruction and construction. 
+3.  	Sparse posterior cell calculation takes lots of time.
+5.	Multiple GPUs support.
+6.	Remove limitation for sequence lengths at stage I.
+7.	Optimise GPU code at stage III.
+8.	Hybrid computing at stage III.
+9.	GPU parallelisation at stage IV.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 1.03 - GPU-optimised version
+
+Changes:
+1. A lot of simple optimisations in Posterior and Partition kernels.
+2. Fixed levels memory allocation error in Finalization wrapper (levels buffer set to workgroup size now).
+3. Auxiliary buffers for rows always allocated in a local memory.
+4. Optional transfer of most commonly used probabilistic and posterior parameters to local memory.
+
+Todo:
+1.	Add Zm, Ze, Zf saturation in MSAPartProbs.cpp and Partition.cl  
+2.	Random crashes at RelaxationWave destruction and construction. 
+3.  	Sparse posterior cell calculation takes lots of time.
+5.	Multiple GPUs support.
+6.	Remove limitation for sequence lengths at stage I.
+7.	Optimise GPU code at stage III.
+8.	Hybrid computing at stage III.
+9.	GPU parallelisation at stage IV.
+10. 	Add relaxed mode characterised by the lower accuracy.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 1.04 - Extreme refactorisation
+
+Changes:
+1. PackedSparseMatrix class added.
+2. Some refactorisations done.
+3. Cutoff subtraction in ParallelBuildPosterior removed (dramatic time improvement).
+4. Loop unrolling in ParallelBuildPosterior.
+5. Type double changed to float in EXP function in ScoreType.cl.
+6. GPU buffers created once for all posterior task waves.
+7. Multiple sparse and sparse transposed kernels joined together.
+
+
+Todo:
+1.	Add Zm, Ze, Zf saturation in MSAPartProbs.cpp and Partition.cl  
+2.	Random crashes at RelaxationWave destruction and construction. 
+3.  Sparse posterior cell calculation takes lots of time.
+5.	Multiple GPUs support.
+6.	Remove limitation for sequence lengths at stage I.
+7.	Optimise GPU code at stage III.
+8.	Hybrid computing at stage III.
+9.	GPU parallelisation at stage IV.
+10. Add relaxed mode characterised by the lower accuracy.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 1.05 - Improvements
+
+Changes:
+1. Memory leaks in sparse matrices removed (no virtual destructor, no destruction of transposed matrices).
+2. Removed errors when loading sequences with small letters.
+3. Fixed reporting of peak memory allocation.
+4. CPU calculations of HMM optimised for execution time and memory usage. 
+5. All memory leaks removed (raw pointers changed to smart pointers).
+6. Workgroup size suggestion added to MultipleConsistency kernel.
+7. Small optimisations introduced to MultipleConsistency.
+8. Posterior kernel divided into four subkernels (PartitionForward, PartitionReverese, Probabilistic, Finalization).
+9. Some optmisations introduced to posterior calculation.
+10. Sequence weighting during consistency transformation simplified.
+11. Kernel executions and memory transfers interleaved (many queues introduced).
+12. Added TC-Malloc allocator.
+13. Experimental driver changed to 13.12.
+14. Discovered change of max posterior wave memory from 512*2e20 (800MB) to 512MB.
+15.	Added hardcoded mem limitation for consistency wave.
+16. Auxiliary memory in CPU posterior calculation allocated only once.
+17. Sequences longer than 1024 processed ona GPU at stage I.
+
+
+Todo:
+1.	Remove hardcoded memory limitation for posterior wave.
+2.	Remove hardcoded memory limitation for consistency wave.
+3.	Remove double auxiliary buffer at posterior stage.
+4.	Do not store all packed sectors in RAM.
+5.	Insert CPU support for very long sequences (>16k symbols).
+5.	Multiple GPUs support.
+6.	Optimise GPU code at stage III.
+7.	Hybrid computing at stage III.
+8. 	Add relaxed mode characterised by the lower accuracy.
+9.	Add Zm, Ze, Zf saturation in MSAPartProbs.cpp and Partition.cl 
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 1.06 - Another improvements
+
+Changes:
+1. No hardcoded memory limitation for long posterior waves (the one corresponding to short ones still exists).
+2. Removed hardcoded memory limitation for consistency wave.
+3. Added CPU support for very long sequences (when global memory requirement is too large).
+4. Bug with increasing Commit Charge removed (bytesNeeded changed to elementsNeeded).
+5. Removed double auxiliary buffer at posterior stage.
+6. Fast mode turned on by default.
+7. Deep refactorisation of HMM and partition function code.
+8. Naive support of nucleotide sequences.
+9. Smart refinement added.
+
+Fixed: 
+1.	Do not store all packed sectors in RAM - they must be stored as both variants before and afrer relaxation are needed.
+2.  Add Zm, Ze, Zf saturation in MSAPartProbs.cpp and Partition.cl - unimportant.
+
+Todo:
+
+1.	Multiple GPUs support.
+2.	Optimise GPU code at stage III.
+3.	Hybrid computing at stage III.
+4. 	Add relaxed mode characterised by the lower accuracy.
+	
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 1.07 - Parameter optimisation added
+
+Changes:
+1. Kernel files reorganized.
+2. Added optimisation switches: 
+	a) --kernel-profiling (kernel profiling, OFF by default),
+	b) --hmm-taylor (Taylor expansion at HMM stage, OFF),
+	c) --local-hmm-params (copy HMM parameters to local memory, ATI: OFF, NVidia: ON),
+	d) --local-partition-params (copy partition params to locl memory, ATI: OFF, NVidia: ON),
+	e) --partition-float (logarithm calculations at partition stage, ON).
+3. Transposed matrices calculation added in PosterioStage and ConsistencyStage.
+4. ProbabilisticModel changed to ParallelProbabilisticModel in PosteriorStage.
+
+Todo:
+1.	Multiple GPUs support.
+2.	Optimise GPU code at stage III.
+3.	Hybrid computing at stage III.
+
+Known Issues:
+1. Accurate mode hangs.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 2.00 - pre-paper version
+
+Changes:
+1. CPU-only mode fixed (bug in PackedSparseMatrix constructor).
+2. Local memory requirements for PartitionLogarithm and PartitionLogarithm_long kernels further reduced (saved in fast variant, but not used).
+3. Number of switches reduced.
+4. Meta-aligner removed from source code.
+5. Burst mode introduced (analysing all files in given folder).
+6. Added filtering of too long sparse rows.
+7. Removed annotation functionality.
+8. Sum of weights calculated inside kernel.
+9. Selective consistency based on tree distance.
+10. Different weights saturation for consistency and final alignment.
+
+Fixed:
+1. Accurate mode hangs.
+2. Large allocation under Linux - caused by the CUDA driver.
+
+Todo:
+1. Fix consistency kernel bugs on Balifam bf40015 abd bf40023 sets.
+2. Fix indeterministic behaviour on Oxbench ___12 set. 
+3.	Multiple GPUs support.
+4.	Optimise GPU code at stage III.
+5.	Hybrid computing at stage III.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 2.01 - pre paper version 2
+
+Changes:
+1. Consistency sector resolution calculated as sqrt(sectors count) for all sectors count.
+2. OpenCL buffer requirements at consistency adjusted exactly to available memory.
+3. Removed auxiliary buffer in consistency postprocessing kernel.
+4. Fixed precision at consistency stage introduced.
+5. Saturations on consistency and construction stages set to 10-6.
+6. Partition function parameters retrained on balibase.
+7. Advanced selective consistency (deterministic/stochastic with different filters).
+8. Acceptance condition in selective consistency changed from < to <=.
+
+Fixed:
+1. Fix consistency kernel bugs on Balifam bf40015 abd bf40023 sets (after removal of auxiliary buffer in consistency postprocessing kernel).
+
+Todo:
+2.  Fix indeterministic behaviour on Oxbench ___12 set. 
+3.	Multiple GPUs support.
+4.	Optimise GPU code at stage III.
+5.	Hybrid computing at stage III.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 2.02 - pre paper version 3
+
+Changes:
+1. Better parameters names.
+2. Refinement with non-terminal columns added.
+3. Properly parallelised refinement.
+4. CPU consistency.
+
+Fixed:
+1. Memory alignment in BufferSet (crash on Linux).
+2. Local memory allocation on Quadro M6000.
+
+Todo:
+2.  Fix indeterministic behaviour on Oxbench ___12 set. 
+3.	Multiple GPUs support.
+4.	Optimise GPU code at stage III.
+5.	Hybrid computing at stage III.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 2.03 - MSB paper!
+
+Fixed:
+1. Memory allocation bug at posterior stage (reversed parameters when generating waves).
+
+Todo:
+2.  Fix indeterministic behaviour on Oxbench ___12 set. 
+3.	Multiple GPUs support.
+4.	Optimise GPU code at stage III.
+5.	Hybrid computing at stage III.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 2.04 - Bioinformatics paper!
+
+Fixed:
+1. Added SLink implementation (not used though).
+2. Force kernel recompilation when loading fails.
+3. Serious bug in refinement (update column statistics after each iteration).
+4. Deterministic random number generator in refinement.
+5. Added selection from most balanced columns during refinement (negative % value).
+6. Default algorithm parameters changed (math optimisations turned on, kernel hmm calculation turned on).
+7. Weighting selectivity depending on the number of sequences involved.
+8. Added tree-based refinement.
+
+
+Todo:
+2.  Fix indeterministic behaviour on Oxbench ___12 set. 
+3.	Multiple GPUs support.
+4.	Optimise GPU code at stage III.
+5.	Hybrid computing at stage III.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 2.05 
+
+1. Added BasicMSA class.
+
+Todo:
+2.  Fix indeterministic behaviour on Oxbench ___12 set. 
+3.	Multiple GPUs support.
+4.	Optimise GPU code at stage III.
+
+-------------------------------------------------------------------------------------------------------------------------------------
+
+Version 2.06 
+
+1. Removed std::filesystem dependency (g++4.8 compatible).
+2. TCMalloc minimal integrated with source code (used only in Windows).
+3. Successfully compiled under OS X.
+
+

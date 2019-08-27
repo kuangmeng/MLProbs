@@ -1,0 +1,2 @@
+/usr/bin/ar qc libKernelAlignment.a  CMakeFiles/KernelAlignment.dir/KernelFactory.cpp.o CMakeFiles/KernelAlignment.dir/KernelRepository.cpp.o CMakeFiles/KernelAlignment.dir/Multiple/KernelMSA.cpp.o CMakeFiles/KernelAlignment.dir/Multiple/KernelSet.cpp.o CMakeFiles/KernelAlignment.dir/Multiple/PosteriorTasksWave.cpp.o CMakeFiles/KernelAlignment.dir/Multiple/QuickPosteriorStage.cpp.o CMakeFiles/KernelAlignment.dir/Multiple/QuickConsistencyStage.cpp.o CMakeFiles/KernelAlignment.dir/Multiple/RelaxationSector.cpp.o
+/usr/bin/ranlib libKernelAlignment.a

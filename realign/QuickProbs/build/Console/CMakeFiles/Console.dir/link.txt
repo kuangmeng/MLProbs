@@ -1,0 +1,1 @@
+/usr/bin/c++   -O3 -fopenmp -std=c++11    -std=c++11 -ltcmalloc -rdynamic CMakeFiles/Console.dir/main.cpp.o  -o /home/lg28/桌面/QuickProbs/bin/quickprobs -Wl,-Bstatic -ltcmalloc_minimal ../Alignment/libAlignment.a ../Common/libCommon.a ../Hardware/libHardware.a -ltcmalloc_minimal ../Common/libCommon.a -Wl,-Bdynamic /home/lg28/桌面/QuickProbs/libs/bins/libOpenCL.a 
