@@ -30,5 +30,11 @@ Run on a single file:
 cd ./path/to/MLProbs/
 python MLProbs.py input.file.fasta -b [output.fasta.msa]
 ```
+or
+
+```
+cd ./path/to/MLProbs/
+python MLProbs.py input.file.fasta -s [output.fasta.msa]
+```
 
 ## Citation
