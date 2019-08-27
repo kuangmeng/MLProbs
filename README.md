@@ -9,9 +9,9 @@ Scikit-Learn: https://scikit-learn.org/stable/
 
 
 ## Installation
-Please compile PnpProbs to `altered_pnpprobs` and move it to `./base_MSA/pnpprobs/` path.
+Please compile our provided PnpProbs in `./base_MSA/` path to `altered_pnpprobs` and save it in `./base_MSA/PnpProbs/` path.
 
-Please compile QuickProbs to `quickprobs` and move it to `./realign/` path.
+Please compile our provided QuickProbs in `./realign/` to `quickprobs` and save it in `./realign/QuickProbs/bin/` path.
 
 Use `miniconda` or `pip` to install `sk-learn`, `subprocess`, `joblib`, `xlrd`, `xlwt` and so on.
 
