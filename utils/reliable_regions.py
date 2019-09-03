@@ -7,7 +7,7 @@ Created on Mon Jul  8 13:19:32 2019
 """
 import os
 
-quick = "./realign/quickprobs "
+quick = "./realign/QuickProbs/bin/quickprobs "
 
 def Quickprobs(seq_file, dir_output):
     os.system(quick + seq_file + " > " + dir_output + "quickprobs.txt")
