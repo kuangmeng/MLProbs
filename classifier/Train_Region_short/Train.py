@@ -26,4 +26,4 @@ def Train(train_data, train_label):
 if __name__ == "__main__":
 
     train_data, train_label = Generate_Data()
-    Train(train_data, train_label)
+    Train(train_data[0: int(len(train_data) * 0.7)], train_label[0: int(len(train_data) * 0.7)])

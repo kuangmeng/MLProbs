@@ -37,8 +37,8 @@ def getAccuracy(test, ref):
 
 
 def TestFile(train, label):
-    test = train
-    test_label = label
+    test = train[int(len(train)*0.7): ]
+    test_label = label[int(len(train)*0.7): ]
     total_result = []
     for flag in range(3):
         result = []
@@ -49,10 +49,9 @@ def TestFile(train, label):
     for i in range(3):
         print(methods[i])
         print(getAccuracy(total_result[i], test_label))
-        print(total_result[i])
+        #print(total_result[i])
 
 
 if __name__ == "__main__":
     train, label = Generate_Data()
     TestFile(train, label)
-    print(label)

@@ -7,7 +7,6 @@ Created on Sat Jun 22 18:49:18 2019
 """
 import os
 import re
-from Detect_Unreliable_Family import Align_ClustalW2
 
 def Realign_file_list(dir_output):
     file_list = os.listdir(dir_output)
@@ -57,7 +56,6 @@ def do_Realign(class_, quick, realign_short, which_part, realign_file):
     tmp_file = "./tmp/qp_tmp/" + os.path.splitext(tmp_path[len(tmp_path) - 1])[0] + ".unreliable"
     tmp_array = []
     perprocess(realign_file, tmp_file, tmp_array)
-    #os.system(pnp_path + str(class_) + " " + realign_file + " -o " + ret_name)
     if int(which_part) == 0:
         os.system(realign_short + " " + tmp_file + " > " + ret_name)
     else:
@@ -143,11 +141,7 @@ def Combination_Files(seq_file, dir_output, output_file):
     if (not os.path.getsize(tmp_file_name)) or tmp_file_lens != seq_file_lens:
         tmp_path_list = tmp_file_name.split(".")
         tmp_file_name = "." + tmp_path_list[1] + ".unreliable"
-        # Align_ClustalW2(tmp_file_name_, tmp_file_name)
-        # if (not os.path.getsize(tmp_file_name)) or tmp_file_lens != seq_file_lens:
-        #     tmp_path_list = tmp_file_name.split(".")
-        #     tmp_file_name = "." + tmp_path_list[1] + ".unreliable"
-        print("Fixed: No sequences read Error !")
+        print("[ERROR] Fixed: No sequences read Error !")
     filein = open(tmp_file_name, 'r')
     file_context = filein.read().splitlines()
     filein.close()
@@ -170,11 +164,7 @@ def Combination_Files(seq_file, dir_output, output_file):
             if (not os.path.getsize(file_name)) or file_lens != seq_file_lens:
                 path_list = file_name.split(".")
                 file_name = "." + path_list[1] + ".unreliable"
-                # Align_ClustalW2(file_name_, file_name)
-                # if (not os.path.getsize(file_name)) or tmp_file_lens != seq_file_lens:
-                #     path_list = file_name.split(".")
-                #     file_name = "." + path_list[1] + ".unreliable"
-                print("Fixed: No sequences read Error !")
+                print("[ERROR] Fixed: No sequences read Error !")
             file_in = open(file_name)
             filein_context = file_in.read().splitlines()
             file_in.close()

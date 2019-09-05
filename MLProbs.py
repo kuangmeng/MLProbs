@@ -91,7 +91,7 @@ def getPID(seq_file, which_part):
             para.append(float(para_context[i]))
     for i in range(len(tmp_list)):
         ret_list.append((float(tmp_list[i]) - para[i * 2 + 1])/ (para[i * 2] - para[i * 2 + 1]))
-    print("Already get classification data.")
+    print("[MAIN STEP] Already get classification data.")
     return [ret_list], prepare_data_1
 
 def TestClassifier(test_list):
@@ -103,14 +103,14 @@ def TestClassifier(test_list):
     if int(result[0]) >= 2 or int(result[0]) < 0:
         return 0
     if int(result[0]) == 0:
-        print("Adapt to Progressive PnpProbs.")
+        print("[MAIN STEP] Adapt to Progressive PnpProbs.")
     else:
-        print("Adapt to non-Progressive PnpProbs.")
+        print("[MAIN STEP] Adapt to non-Progressive PnpProbs.")
     return int(result[0])
 
 def getMSA(class_, seq_file):
     global killed_stage
-    print("MSA process is begining ...")
+    print("[MAIN STEP] MSA process is begining ...")
     status = 0
     result_real_output = ""
     if class_ < 2:
@@ -120,7 +120,7 @@ def getMSA(class_, seq_file):
     if status != 0:
         killed_stage  = 2
         return ""
-    print("MSA process ended.")
+    print("[MAIN STEP] MSA process ended.")
     return result_real_output
 
 def Refresh():
@@ -132,10 +132,10 @@ def seperateRegions(seq_file, col_score, sigma, beta, class_lens, real_output):
     global killed_stage
     if killed_stage != 2:
         if killed_stage != 3:
-            print("Seperating Unreliable Regions...")
+            print("[MAIN STEP] Seperating Unreliable Regions...")
             unreliable_regions = getUnreliableRegions(sigma, beta, theta, threshold, col_score, seq_file, real_output, class_lens)
             seperateUnreliableRegions(unreliable_regions, real_output, dir_output)
-            print("Seperated Unreliable Regions.")
+            print("[MAIN STEP] Seperated Unreliable Regions.")
         else:
             killed_stage = 4
     else:
@@ -146,13 +146,13 @@ def SeperateReliableRegions(seq_file, col_score, real_output, which_part):
     global killed_stage
     if killed_stage != 2:
         if killed_stage != 3:
-            print("Seperating Reliable Regions...")
+            print("[MAIN STEP] Seperating Reliable Regions...")
             if int(which_part) == 1:
                 Quickprobs(seq_file, dir_output)
             else:
                 reliable_regions = GetReliableRegions(col_score, threshold, 0, seq_file)
                 seperateReliableRegions(reliable_regions, real_output, dir_output)
-            print("Seperated Reliable Regions.")
+            print("[MAIN STEP] Seperated Reliable Regions.")
         else:
             killed_stage = 4
     else:
@@ -231,25 +231,25 @@ if __name__ == "__main__":
         elif sys.argv[2] == "-b":
             which_part = 1
         else:
-            print("The 2nd option is wrong! Use the default option.")
+            print("[ERROR] The 2nd option is wrong! Use the default option.")
             which_part = 1
         if len(sys.argv) > 3:
             output_file = sys.argv[3]
     class1_time = 0
     if which_part == 1:
         test_list, prepare_data_1 = getPID(seq_file, which_part)
-        print("Prepare Data for Classifier 1 time: %.3f s"%(prepare_data_1 - start_time))
+        print("[ELAPSED TIME] Preparing data for \"Classifier 1\" takes %.3f sec."%(prepare_data_1 - start_time))
         class_ = TestClassifier(test_list)
         class1_time = time.time()
-        print("Classifier 1 time: %.3f s"%(class1_time - prepare_data_1))
+        print("[ELAPSED TIME] \"Classifier 1\" takes %.3f sec."%(class1_time - prepare_data_1))
     else:
         class_ = 2
         class1_time = start_time
     result_real_output = getMSA(class_, seq_file)
     base_msa_time = time.time()
-    print("Get Base MSA time: %.3f s"%(base_msa_time - class1_time))
+    print("[ELAPSED TIME] Get base MSA spends %.3f sec."%(base_msa_time - class1_time))
     prepare_data_2, col_score, un_sp, len_seqs, len_family, sd_un_sp, peak_length_ratio = detect_unreliable_regions(result_real_output)
-    print("Prepare Data for Classifier 3 time: %.3f s"%(prepare_data_2 - base_msa_time))
+    print("[ELAPSED TIME] Preparing data for \"Classifier 3\" takes %.3f sec."%(prepare_data_2 - base_msa_time))
     class_region = 0
     if which_part == 1:
         class_region = getRegions_to_Realign(peak_length_ratio, avg_PID, sd_un_sp, un_sp)
@@ -257,36 +257,38 @@ if __name__ == "__main__":
         class_region = getRegions_to_Realign_short(peak_length_ratio, sd_un_sp, un_sp)
 
     if int(class_region) == 0:
-        print("Choose to Realign Reliable Regions!")
+        print("[MAIN STEP] Choose to run \"Realign Reliable Regions(RRR)\" module!")
     else:
-        print("Choose to Realign Unreliable Regions!")
+        print("[MAIN STEP] Choose to run \"Realign Unreliable Regions(RUR)\" module!")
     class3_time = time.time()
-    print("Classifier 3 time: %.3f s" % (class3_time - prepare_data_2))
+    print("[ELAPSED TIME] \"Classifier 3\" takes %.3f sec." % (class3_time - prepare_data_2))
     class2_time = 0
     if int(class_region) == 1:
         if int(which_part) == 1:
             class_lens = getRegionsLength(len_seqs, len_family, avg_PID, sd_PID, un_sp, which_part)
+            classifier2_time = time.time()
+            print("[ELAPSED TIME] \"Classifier 2\" takes %.3f sec."%(classifier2_time - class3_time))
         else:
             class_lens = 1
         seperateRegions(seq_file, col_score, sigma, beta, class_lens, result_real_output)
         class2_time = time.time()
-        print("RUR time: %.3f s"%(class2_time - class3_time))
+        print("[ELAPSED TIME] RUR spends %.3f sec."%(class2_time - class3_time))
     else:
         SeperateReliableRegions(seq_file, col_score, result_real_output, which_part)
         class2_time = time.time()
-        print("RRR time: %.3f s"%(class2_time - class3_time))
+        print("[ELAPSED TIME] RRR spends %.3f sec."%(class2_time - class3_time))
 
     if killed_stage != 4:
-        print("Realign !!!")
+        print("[MAIN STEP] Realign !!!")
         do_Realign_Dir(dir_output, class_, quickprobs, realign_short, which_part)
         realign_time = time.time()
-        print("Realign time: %.3f s"%(realign_time - class2_time))
-        print("Combination !!!")
+        print("[ELAPSED TIME] Realigments spend %.3f sec."%(realign_time - class2_time))
+        print("[MAIN STEP] Combination !!!")
         Combination_Files(seq_file, dir_output, output_file)
-        print("Got the final MSA!")
+        print("[MAIN STEP] Got the final MSA!")
         end_time = time.time()
         total_time = end_time - start_time
-        print("Total Running time: %.3f s"%(total_time))
+        print("[ELAPSED TIME] Total Running time: %.3f sec."%(total_time))
     else:
         if not os.path.exists(output_file):
             os.system(quickprobs + " " + seq_file + " > " + output_file)
@@ -295,11 +297,11 @@ if __name__ == "__main__":
                 os.system(quickprobs + " " + seq_file + " > " + output_file)
         end_time = time.time()
         total_time = end_time - start_time
-        print("Total Running time: %.3f s"%(total_time))
+        print("[ELAPSED TIME] Total Running time: %.3f sec."%(total_time))
     killed_stage = 0
     if not os.path.getsize(output_file):
-        print("Result is Empty ?")
+        print("[ERROR] Result is Empty ?")
         os.system(quickprobs + " " + seq_file + " > " + output_file)
         end_time = time.time()
         total_time = end_time - start_time
-        print("Total Running time: %.3f s"%(total_time))
+        print("[ELAPSED TIME] Total Running time: %.3f sec."%(total_time))

@@ -6,7 +6,6 @@ Created on Sat Jun 22 16:54:37 2019
 @author: mmkuang
 """
 import os
-from Detect_Unreliable_Family import Detect_Unreliable
 def getUnreliableRegions(sigma, beta, theta, threshold, col_score, seq_file, real_output, class_lens):
     lens_seq_4_devide = 30
     if int(class_lens) == 2:

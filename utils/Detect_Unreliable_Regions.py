@@ -71,7 +71,7 @@ def detect_unreliable_regions(real_pnp):
         tmp_score /= lens_
         tmp_un_sp += tmp_score
         col_score.append(tmp_score)
-    print("Calculated Column Score!")
+    print("[SUPPORT STEP] Calculated Column Score!")
     tmp_sd = 0.0
     if lens != 0:
         tmp_un_sp /= lens

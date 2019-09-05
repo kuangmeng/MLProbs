@@ -1,14 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jun 21 17:41:51 2019
-
-@author: mmkuang
-"""
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
 Created on Fri Jun 21 17:21:35 2019
 
 @author: mmkuang
@@ -69,8 +61,3 @@ def reverseTail_MSA(save_path_tail):
         fileout.write(dickeys[idx] + "\n")
         fileout.write(dic[dickeys[idx]][::-1] + "\n")
     fileout.close()
-
-
-if __name__ == "__main__":
-    reverseTail_MSA()
-    processingHead_MSA()
