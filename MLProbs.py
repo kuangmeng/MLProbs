@@ -6,7 +6,6 @@ import sys
 import math
 from joblib import load
 sys.path.append("./utils/")
-sys.path.append("./classifier/")
 import time
 from do_realign import do_Realign_Dir
 from do_realign import Combination_Files
