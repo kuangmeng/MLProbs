@@ -38,7 +38,7 @@ def Quickprobs(seq_file, dir_output):
             fileout.write(dic[dic_] + "\n")
     os.system("mv " + dir_output + "quickprobs.txt " + dir_output + "0-" + str(lens) + ".reliable")
 
-def GetReliableRegions(col_score, threshold, class_lens_, seq_file):
+def GetReliableRegions(col_score, threshold, class_lens_max, seq_file):
     divide_lens = 10
     last_col = len(col_score) - 1
     reliable_regions = []
@@ -54,12 +54,18 @@ def GetReliableRegions(col_score, threshold, class_lens_, seq_file):
         elif float(col_score[item]) >= threshold and tmp_1 == 1 and tmp_2 == 1:
             if item == last_col:
                 if int(item) - int(tmp_head) > divide_lens:
-                    reliable_regions.append([int(tmp_head), int(item)])
+                     if int(class_lens_max) >= int(item) - int(tmp_head):
+                        reliable_regions.append([int(tmp_head), int(item)])
+                    else:
+                        reliable_regions.append([int(tmp_head), int(tmp_head) + 30])
             else:
                 continue
         elif float(col_score[item]) < threshold and tmp_1 == 1 and tmp_2 == 1:
             if int(item) - int(tmp_head) > divide_lens:
-                reliable_regions.append([int(tmp_head), int(item)])
+                 if int(class_lens_max) >= int(item) - int(tmp_head):
+                    reliable_regions.append([int(tmp_head), int(item)])
+                else:
+                    reliable_regions.append([int(tmp_head), int(tmp_head) + 30])
             tmp_1 = 0
             tmp_2 = 0
             tmp_head = 0

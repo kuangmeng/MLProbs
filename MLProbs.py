@@ -149,7 +149,7 @@ def SeperateReliableRegions(seq_file, col_score, real_output, which_part):
             if int(which_part) == 1:
                 Quickprobs(seq_file, dir_output)
             else:
-                reliable_regions = GetReliableRegions(col_score, threshold, 0, seq_file)
+                reliable_regions = GetReliableRegions(col_score, threshold, 30, seq_file)
                 seperateReliableRegions(reliable_regions, real_output, dir_output)
             print("[MAIN STEP] Seperated Reliable Regions.")
         else:
@@ -256,9 +256,9 @@ if __name__ == "__main__":
         class_region = getRegions_to_Realign_short(peak_length_ratio, sd_un_sp, un_sp)
 
     if int(class_region) == 0:
-        print("[MAIN STEP] Choose to run \"Realign Reliable Regions(RRR)\" module!")
+        print("[MAIN STEP] Choose to run \"Realign Credible Regions(RCR)\" module!")
     else:
-        print("[MAIN STEP] Choose to run \"Realign Unreliable Regions(RUR)\" module!")
+        print("[MAIN STEP] Choose to run \"Realign Incredible Regions(RIR)\" module!")
     class3_time = time.time()
     print("[ELAPSED TIME] \"Classifier 3\" takes %.3f sec." % (class3_time - prepare_data_2))
     class2_time = 0
@@ -268,15 +268,14 @@ if __name__ == "__main__":
             classifier2_time = time.time()
             print("[ELAPSED TIME] \"Classifier 2\" takes %.3f sec."%(classifier2_time - class3_time))
         else:
-            class_lens = 1
+            class_lens = 30
         seperateRegions(seq_file, col_score, sigma, beta, class_lens, result_real_output)
         class2_time = time.time()
-        print("[ELAPSED TIME] RUR spends %.3f sec."%(class2_time - class3_time))
+        print("[ELAPSED TIME] RIR spends %.3f sec."%(class2_time - class3_time))
     else:
         SeperateReliableRegions(seq_file, col_score, result_real_output, which_part)
         class2_time = time.time()
-        print("[ELAPSED TIME] RRR spends %.3f sec."%(class2_time - class3_time))
-
+        print("[ELAPSED TIME] RCR spends %.3f sec."%(class2_time - class3_time))
     if killed_stage != 4:
         print("[MAIN STEP] Realign !!!")
         do_Realign_Dir(dir_output, class_, quickprobs, realign_short, which_part)
