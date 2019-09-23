@@ -54,7 +54,7 @@ def GetReliableRegions(col_score, threshold, class_lens_max, seq_file):
         elif float(col_score[item]) >= threshold and tmp_1 == 1 and tmp_2 == 1:
             if item == last_col:
                 if int(item) - int(tmp_head) > divide_lens:
-                     if int(class_lens_max) >= int(item) - int(tmp_head):
+                    if int(class_lens_max) >= int(item) - int(tmp_head):
                         reliable_regions.append([int(tmp_head), int(item)])
                     else:
                         reliable_regions.append([int(tmp_head), int(tmp_head) + 30])
@@ -62,7 +62,7 @@ def GetReliableRegions(col_score, threshold, class_lens_max, seq_file):
                 continue
         elif float(col_score[item]) < threshold and tmp_1 == 1 and tmp_2 == 1:
             if int(item) - int(tmp_head) > divide_lens:
-                 if int(class_lens_max) >= int(item) - int(tmp_head):
+                if int(class_lens_max) >= int(item) - int(tmp_head):
                     reliable_regions.append([int(tmp_head), int(item)])
                 else:
                     reliable_regions.append([int(tmp_head), int(tmp_head) + 30])
