@@ -146,7 +146,7 @@ def SeperateReliableRegions(seq_file, col_score, real_output, which_part):
     if killed_stage != 2:
         if killed_stage != 3:
             print("[MAIN STEP] Seperating Reliable Regions...")
-            if int(which_part) == 1:
+            if int(which_part) == 0:
                 Quickprobs(seq_file, dir_output)
             else:
                 reliable_regions = GetReliableRegions(col_score, threshold, 30, seq_file)

@@ -62,6 +62,8 @@ def Compute(prom):
     return tmp_bench, total_time
 
 if __name__ == "__main__":
+    if not os.path.exists("./output"):
+        os.system("mkdir ./output/")
     tmp_bench, total_time = Compute("python MLProbs.py ")
     for i in range(len(tmp_bench)):
         print("%s: %f" % (tmp_bench[i], total_time[i]))

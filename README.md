@@ -13,11 +13,11 @@ Please compile our provided PnpProbs in `./base_MSA/` path to `altered_pnpprobs`
 
 Please compile our provided QuickProbs in `./realign/` to `quickprobs` and save it in `./realign/QuickProbs/bin/` path.
 
-Use `miniconda` or `pip` to install `sk-learn`, `subprocess`, `joblib`, `xlrd`, `xlwt` and so on.
+Use `miniconda` or `pip` to install `sk-learn`, `subprocess`, `joblib`, `xlrd`, `xlwt`.
 
 
 ## Run
-Run on all the benchmarks:
+Run on all the benchmarks (The benchmarks are in `./bench_all/` folder):
 
 ```
 cd ./path/to/MLProbs/
