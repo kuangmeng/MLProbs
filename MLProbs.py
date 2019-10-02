@@ -131,10 +131,10 @@ def seperateRegions(seq_file, col_score, sigma, beta, class_lens, real_output):
     global killed_stage
     if killed_stage != 2:
         if killed_stage != 3:
-            print("[MAIN STEP] Seperating Unreliable Regions...")
+            print("[MAIN STEP] Seperating Incredible Regions...")
             unreliable_regions = getUnreliableRegions(sigma, beta, theta, threshold, col_score, seq_file, real_output, class_lens)
             seperateUnreliableRegions(unreliable_regions, real_output, dir_output)
-            print("[MAIN STEP] Seperated Unreliable Regions.")
+            print("[MAIN STEP] Seperated Incredible Regions.")
         else:
             killed_stage = 4
     else:
@@ -145,13 +145,13 @@ def SeperateReliableRegions(seq_file, col_score, real_output, which_part):
     global killed_stage
     if killed_stage != 2:
         if killed_stage != 3:
-            print("[MAIN STEP] Seperating Reliable Regions...")
+            print("[MAIN STEP] Seperating Credible Regions...")
             if int(which_part) == 0:
                 Quickprobs(seq_file, dir_output)
             else:
                 reliable_regions = GetReliableRegions(col_score, threshold, 30, seq_file)
                 seperateReliableRegions(reliable_regions, real_output, dir_output)
-            print("[MAIN STEP] Seperated Reliable Regions.")
+            print("[MAIN STEP] Seperated Credible Regions.")
         else:
             killed_stage = 4
     else:
