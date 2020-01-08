@@ -7,8 +7,9 @@ Created on Sat Jun 22 18:49:18 2019
 """
 import os
 import re
+from calculate_column_scores import getAvgColScore
 
-def Realign_file_list(dir_output):
+def realignFileList(dir_output):
     file_list = os.listdir(dir_output)
     realign_file_list = []
     for file in file_list:
@@ -16,7 +17,7 @@ def Realign_file_list(dir_output):
             realign_file_list.append(dir_output + file)
     return realign_file_list
 
-def perprocess(real_output, real_out, tmp_array):
+def perProcess(real_output, real_out, tmp_array):
     filein = open(real_output, 'r')
     file_context = filein.read().splitlines()
     filein.close()
@@ -45,7 +46,7 @@ def perprocess(real_output, real_out, tmp_array):
             else:
                 tmp_array.append(item)
 
-def do_Realign(class_, quick, realign_short, which_part, realign_file):
+def doRealign(realign_normal, realign_short, class_region, realign_file):
     ret_name = ""
     tmp_path = realign_file.split("/")
     for i in range(len(tmp_path) - 1):
@@ -55,20 +56,21 @@ def do_Realign(class_, quick, realign_short, which_part, realign_file):
         os.system("mkdir ./tmp/qp_tmp/")
     tmp_file = "./tmp/qp_tmp/" + os.path.splitext(tmp_path[len(tmp_path) - 1])[0] + ".unreliable"
     tmp_array = []
-    perprocess(realign_file, tmp_file, tmp_array)
-    if int(which_part) == 0:
+    perProcess(realign_file, tmp_file, tmp_array)
+    if int(class_region) == 0:
         os.system(realign_short + " " + tmp_file + " > " + ret_name)
     else:
-        os.system(quick + " " + tmp_file + " > " + ret_name)
+        os.system(realign_normal + " " + tmp_file + " > " + ret_name)
     if not os.path.exists(ret_name):
         os.system("cp " +  realign_file + "  " + ret_name)
     else:
         if not os.path.getsize(ret_name):
             os.system("cp " + realign_file  + "  " + ret_name)
+        elif getAvgColScore(realign_file) > getAvgColScore(ret_name):
+            os.system("cp " + realign_file  + "  " + ret_name)
+    addPerProcess(ret_name, tmp_array)
 
-    add_PerProcess(ret_name, tmp_array)
-
-def add_PerProcess(ret_name, tmp_save):
+def addPerProcess(ret_name, tmp_save):
     filein = open(ret_name, 'r')
     file_context = filein.read().splitlines()
     filein.close()
@@ -98,12 +100,16 @@ def add_PerProcess(ret_name, tmp_save):
             fileout.write(itm + "\n")
             fileout.write("-"*lens + "\n")
 
-def do_Realign_Dir(dir_output, class_, quick, realign_short, which_part):
-    realign_file_list = Realign_file_list(dir_output)
-    for file in realign_file_list:
-        do_Realign(class_, quick, realign_short, which_part, file)
+def doRealignDir(seq_file, dir_output, realign_normal, realign_short, class_region):
+    realign_file_list = realignFileList(dir_output)
+    if (factor > 0 and class_region == 0) or class_region == 1:
+        for file in realign_file_list:
+            doRealign(realign_normal, realign_short, class_region, file)
+    else:
+        ExceptionHandling(seq_file, dir_output)
 
-def getFile_Len(filename):
+
+def getFileLen(filename):
     seq_file_lens = 0
     with open(filename, 'r') as seq_file_in:
         seq_file_context = seq_file_in.read().splitlines()
@@ -112,13 +118,16 @@ def getFile_Len(filename):
                 seq_file_lens += 1
     return seq_file_lens
 
-def Combination_Files(seq_file, dir_output, output_file):
-    seq_file_lens = getFile_Len(seq_file)
+def combineFiles(seq_file, dir_output, output_file):
+    seq_file_lens = getFileLen(seq_file)
     file_list = os.listdir(dir_output)
     need_combination = []
     for file in file_list:
         if os.path.splitext(file)[-1][1:] == "reliable" and file[0] != '.':
             need_combination.append(dir_output + file)
+    if len(need_combination) == 1:
+        os.system('mv ' + need_combination[0] + output_file)
+        return
     tmp_num_arr = []
     for itt in need_combination:
         tmp_num_arr.append(int(itt.split("/")[-1].split("-")[0]))
@@ -131,13 +140,12 @@ def Combination_Files(seq_file, dir_output, output_file):
     if len(need_combination) != len(need_combination_files):
         print("ERROR: file length")
         return
-
     dic = {}
     has_key = False
     value = ""
     key = ""
     tmp_file_name = need_combination_files[0]
-    tmp_file_lens = getFile_Len(tmp_file_name)
+    tmp_file_lens = getFileLen(tmp_file_name)
     if (not os.path.getsize(tmp_file_name)) or tmp_file_lens != seq_file_lens:
         tmp_path_list = tmp_file_name.split(".")
         tmp_file_name = "." + tmp_path_list[1] + ".unreliable"
@@ -160,7 +168,7 @@ def Combination_Files(seq_file, dir_output, output_file):
     if len(need_combination_files) > 1:
         for file_i in range(1, len(need_combination_files)):
             file_name = need_combination_files[file_i]
-            file_lens = getFile_Len(file_name)
+            file_lens = getFileLen(file_name)
             if (not os.path.getsize(file_name)) or file_lens != seq_file_lens:
                 path_list = file_name.split(".")
                 file_name = "." + path_list[1] + ".unreliable"
@@ -183,11 +191,14 @@ def Combination_Files(seq_file, dir_output, output_file):
                 elif tmp_haskey == True:
                     tmp_value = tmp_value.replace("\r","") + filein_context[t].replace("\r","")
             dic[tmp_key] += tmp_value
-
     dickeys = sorted(dic.keys())
     fileout = open(output_file, 'w')
-
     for idx in range(len(dickeys)):
         fileout.write(dickeys[idx] + "\n")
         fileout.write(dic[dickeys[idx]] + "\n")
     fileout.close()
+
+def ExceptionHandling(seq_file, dir_output):
+    os.system('rm -rf ' + dir_output + "/*")
+    quick = "./realign/QuickProbs/bin/quickprobs "
+    os.system(quick + seq_file + " > " + dir_output + "0-0.reliable")

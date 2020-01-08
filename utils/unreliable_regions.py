@@ -6,7 +6,7 @@ Created on Sat Jun 22 16:54:37 2019
 @author: mmkuang
 """
 import os
-def getUnreliableRegions(sigma, beta, theta, threshold, col_score, seq_file, real_output, class_lens):
+def getUnreliableRegions(sigma, beta, col_score, seq_file, real_output, class_lens):
     lens_seq_4_devide = 30
     if int(class_lens) == 2:
         lens_seq_4_devide = 20

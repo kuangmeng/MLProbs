@@ -7,65 +7,42 @@ Created on Mon Jul  8 13:19:32 2019
 """
 import os
 
-quick = "./realign/QuickProbs/bin/quickprobs "
-
-def Quickprobs(seq_file, dir_output):
-    os.system(quick + seq_file + " > " + dir_output + "quickprobs.txt")
-    filein = open(dir_output + "quickprobs.txt", 'r')
-    file_context = filein.read().splitlines()
-    filein.close()
-    dic = {}
-    has_key = False
-    value = ""
-    key = ""
-    for itm in range(len(file_context)):
-        if file_context[itm][0:1] == ">":
-            if has_key == True:
-                dic[key] = value
-                value = ""
-                key = ""
-                has_key = False
-            has_key = True
-            key = file_context[itm]
-        elif has_key == True:
-            value = value.replace("\r","") + file_context[itm].replace("\r","")
-    dic[key] = value
-    lens = len(value)
-    dickeys = sorted(dic.keys())
-    with open(dir_output + "quickprobs.txt", 'w') as fileout:
-        for dic_ in dickeys:
-            fileout.write(dic_ + "\n")
-            fileout.write(dic[dic_] + "\n")
-    os.system("mv " + dir_output + "quickprobs.txt " + dir_output + "0-" + str(lens) + ".reliable")
-
-def GetReliableRegions(col_score, threshold, class_lens_max, seq_file):
-    divide_lens = 10
+def getReliableRegions(col_score, threshold, class_lens_max, class_lens_min, seq_file, dir_output):
+    set_max = False
+    if class_lens_max > 0:
+        set_max = True
     last_col = len(col_score) - 1
     reliable_regions = []
+    tmp_head = 0
     tmp_1 = 0
     tmp_2 = 0
-    tmp_head = 0
     for item in range(len(col_score)):
-        if float(col_score[item]) >= threshold and tmp_1 == 0:
+        if float(col_score[item]) > threshold and tmp_1 == 0:
             tmp_head = int(item) + 1
             tmp_1 = 1
-        elif float(col_score[item]) >= threshold and tmp_1 == 1 and tmp_2 == 0:
+        elif float(col_score[item]) > threshold and tmp_1 == 1 and tmp_2 == 0:
             tmp_2 = 1
-        elif float(col_score[item]) >= threshold and tmp_1 == 1 and tmp_2 == 1:
+        elif float(col_score[item]) > threshold and tmp_1 == 1 and tmp_2 == 1:
             if item == last_col:
-                if int(item) - int(tmp_head) > divide_lens:
-                    if int(class_lens_max) >= int(item) - int(tmp_head):
-                        reliable_regions.append([int(tmp_head), int(item)])
-                    else:
-                        reliable_regions.append([int(tmp_head), int(tmp_head) + 30])
+                if int(item) - int(tmp_head) > class_lens_min and int(item) - int(tmp_head) >= 3:
+                    if set_max == True:
+                        while class_lens_max < int(item) - int(tmp_head):
+                            if float(col_score[item]) > int(col_score[tmp_head]) and int(tmp_head) > 1:
+                                tmp_head += 1
+                            else:
+                                item -= 1
+                    reliable_regions.append([int(tmp_head), int(item)])
             else:
                 continue
-        elif float(col_score[item]) < threshold and tmp_1 == 1 and tmp_2 == 1:
-            if int(item) - int(tmp_head) > divide_lens:
-                if int(class_lens_max) >= int(item) - int(tmp_head):
-                    reliable_regions.append([int(tmp_head), int(item)])
-                else:
-                    reliable_regions.append([int(tmp_head), int(tmp_head) + 30])
+        elif float(col_score[item]) <= threshold and tmp_1 == 1 and tmp_2 == 1:
+            if int(item) - int(tmp_head) > class_lens_min and int(item) - int(tmp_head) >= 3:
+                if set_max == True:
+                    while class_lens_max < int(item) - int(tmp_head):
+                        if float(col_score[item]) > int(col_score[tmp_head]) and int(tmp_head) > 1:
+                            tmp_head += 1
+                        else:
+                            item -= 1
+                reliable_regions.append([int(tmp_head), int(item)])
             tmp_1 = 0
             tmp_2 = 0
             tmp_head = 0
