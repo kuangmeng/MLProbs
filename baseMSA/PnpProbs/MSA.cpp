@@ -756,7 +756,7 @@ float peak_length_ = 0;
 	}
 	variance /= ( (numSeqs-1)*numSeqs/2 );
 	variance = sqrt(variance);
-    float factor = -2.60911183 * (float)numSeqs + 1.64244238 * (float) avg_length - 1.35314893;
+    float factor = 2 * (float)numSeqs - (float) avg_length;
 
     return to_string(identity) + "\t" + to_string(variance) + "\t" + to_string(numSeqs) + "\t" + to_string(avg_length) + "\t" + to_string(tmp_sp) + "\t" + to_string(peak_length_) + "\t" + to_string(factor);
 }

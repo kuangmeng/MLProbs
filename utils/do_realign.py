@@ -100,9 +100,9 @@ def addPerProcess(ret_name, tmp_save):
             fileout.write(itm + "\n")
             fileout.write("-"*lens + "\n")
 
-def doRealignDir(seq_file, dir_output, realign_normal, realign_short, class_region):
+def doRealignDir(seq_file, dir_output, realign_normal, realign_short, class_region, factor):
     realign_file_list = realignFileList(dir_output)
-    if (factor > 0 and class_region == 0) or class_region == 1:
+    if (float(factor) > 0 and class_region == 0) or class_region == 1:
         for file in realign_file_list:
             doRealign(realign_normal, realign_short, class_region, file)
     else:
@@ -126,7 +126,7 @@ def combineFiles(seq_file, dir_output, output_file):
         if os.path.splitext(file)[-1][1:] == "reliable" and file[0] != '.':
             need_combination.append(dir_output + file)
     if len(need_combination) == 1:
-        os.system('mv ' + need_combination[0] + output_file)
+        os.system('mv ' + need_combination[0] +  ' ' + output_file)
         return
     tmp_num_arr = []
     for itt in need_combination:
@@ -201,4 +201,4 @@ def combineFiles(seq_file, dir_output, output_file):
 def ExceptionHandling(seq_file, dir_output):
     os.system('rm -rf ' + dir_output + "/*")
     quick = "./realign/QuickProbs/bin/quickprobs "
-    os.system(quick + seq_file + " > " + dir_output + "0-0.reliable")
+    os.system(quick + seq_file + " > " + dir_output + "0-0.reliable ")
