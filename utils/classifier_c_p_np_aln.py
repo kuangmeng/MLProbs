@@ -11,7 +11,7 @@ import subprocess
 
 model_ = "./classifier/model/branch/randomforest.joblib"
 para_ = "./classifier/model/branch/para.txt"
-pnp_getmsa_path = "./baseMSA/PnpProbs/alter_pnpprobs -p "
+pnp_getmsa_path = "./baseMSA/C_P_NP_Aln/c_p_np_aln -p "
 quickprobs =  "./realign/QuickProbs/bin/quickprobs "
 
 def testClassifier(test_list, killed_stage):
@@ -20,15 +20,13 @@ def testClassifier(test_list, killed_stage):
     if killed_stage == 1:
         return 0
     clf = load(model_)
-    if 'xgboost' in model_:
-        test_list = DataFrame(test_list)
     result = clf.predict(test_list)
     if int(result[0]) >= 2 or int(result[0]) < 0:
         return 0
     if int(result[0]) == 0:
-        print("[MAIN STEP] Adapt to Progressive PnpProbs.")
+        print("[MAIN STEP] Adapt to Progressive Strategy.")
     else:
-        print("[MAIN STEP] Adapt to non-Progressive PnpProbs.")
+        print("[MAIN STEP] Adapt to non-Progressive Strategy.")
     return int(result[0])
 
 def getMSA(class_, seq_file, killed_stage):
@@ -45,7 +43,7 @@ def getMSA(class_, seq_file, killed_stage):
     print("[MAIN STEP] MSA process ended.")
     return result_real_output, killed_stage
 
-def AlteredPnpProbs(test_list, killed_stage, prepare_data_1, seq_file):
+def AlteredPnp(test_list, killed_stage, prepare_data_1, seq_file):
     class_ = testClassifier(test_list, killed_stage)
     class1_time = time.time()
     print("[ELAPSED TIME] \"Classifier 1\" takes %.3f sec."%(class1_time - prepare_data_1))

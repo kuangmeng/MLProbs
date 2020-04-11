@@ -9,7 +9,7 @@ import os
 import subprocess
 import sys
 import time
-pnp_getpid_path = "./baseMSA/PnpProbs/alter_pnpprobs -G "
+pnp_getpid_path = "./baseMSA/C_P_NP_Aln/c_p_np_aln -G "
 
 para_ = "./classifier/model/branch/para.txt"
 

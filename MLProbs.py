@@ -11,7 +11,7 @@ from pandas.core.frame import DataFrame
 from utils import Refresh
 from utils import Move
 from prepare_features_4_classifier_1 import getFeatures4Classifier1
-from classifier_altered_pnpprobs import AlteredPnpProbs
+from classifier_c_p_np_aln import AlteredPnp
 from calculate_column_scores import calculateColScore
 from classifier_realign_strategy import getRealignStrategy
 from classifier_region_min_length import getRegionsLength
@@ -42,14 +42,12 @@ if __name__ == "__main__":
     test_list, prepare_data_1, avg_PID, sd_PID, factor =  getFeatures4Classifier1(seq_file)
     print("[ELAPSED TIME] Preparing data for \"Classifier 1\" takes %.3f sec."%(prepare_data_1 - start_time))
     
-    result_real_output, base_msa_time, class1_time, killed_stage = AlteredPnpProbs(test_list, killed_stage, prepare_data_1, seq_file)
+    result_real_output, base_msa_time, class1_time, killed_stage = AlteredPnp(test_list, killed_stage, prepare_data_1, seq_file)
     print("[ELAPSED TIME] Get base MSA spends %.3f sec."%(base_msa_time - class1_time))
     
     prepare_data_2, col_score, un_sp, len_seqs, len_family, sd_un_sp, peak_length_ratio = calculateColScore(result_real_output)
     print("[ELAPSED TIME] Preparing data for \"Classifier 3\" takes %.3f sec."%(prepare_data_2 - base_msa_time)) 
-    print('%f\t%f\t%f\t%f'%(peak_length_ratio, avg_PID, sd_un_sp, un_sp))
     class_region = getRealignStrategy(peak_length_ratio, avg_PID, sd_un_sp, un_sp)
-    print(class_region)
     if int(class_region) == 0:
         print("[MAIN STEP] Choose to run \"Realign Credible Regions(RCR)\" module!")
     else:
