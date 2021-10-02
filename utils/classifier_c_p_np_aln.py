@@ -39,7 +39,6 @@ def getMSA(class_, seq_file, killed_stage):
         status, result_real_output = subprocess.getstatusoutput(quickprobs + " " + seq_file)
     if status != 0:
         killed_stage  = 2
-        return ""
     print("[MAIN STEP] MSA process ended.")
     return result_real_output, killed_stage
 

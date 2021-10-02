@@ -1,29 +1,10 @@
-# Title
+# MLProbs: A Data-Centric Pipeline for better Multiple Sequence Alignment
 
-MLProbs: A Data-Centric Pipeline for better Multiple Sequence Alignment
-
-## Dependency Libraries
-
-PnpProbs: https://github.com/ytye/PnpProbs
-
-QuickProbs: https://github.com/refresh-bio/QuickProbs
-
-Scikit-Learn: https://scikit-learn.org/stable/
-
-
-## Installation
-Please compile our provided $\mathcal C_{P, NP}^{Aln}$ in `./base_MSA/` path to `c_p_np_aln` and save it in `./base_MSA/C_P_NP_Aln/` path.
-
-Please compile our provided QuickProbs in `./realign/` to `quickprobs` and save it in `./realign/QuickProbs/bin/` path.
-
-Use `miniconda` or `pip` to install `sk-learn`, `subprocess`, `joblib`, `xlrd`, `xlwt` or `pip install -r requirements.txt` to install them.
-
-
-## Run
-Run on all the benchmarks (The benchmarks are in `./TEST/bench/` folder):
+## Evaluation
+Run on all the benchmarks (in `./TEST/` folder):
 
 ```
-cd ./path/to/MLProbs/TEST/
+cd ./path/to/MLProbs/
 python script.py
 ```
 
@@ -34,6 +15,23 @@ cd ./path/to/MLProbs/
 python MLProbs.py input.file.fasta [output.fasta.msa]
 ```
 
-**If it doesn't work, please move the content in `./TEST/` directory to the `./` directory. **
+## Installation
+Please follow the `README` file in `./baseMSA/C_P_NP_Aln/` to compile our provided $\mathcal C_{P, NP}^{Aln}$ in `./baseMSA/` folder to `c_p_np_aln` and save it to `./baseMSA/C_P_NP_Aln/`.
+
+Please follow the `quickprobs-manual.pdf` to compile our provided QuickProbs in `./realign/QuickProbs/` to `quickprobs` and save it to `./realign/QuickProbs/bin/`.
+
+Use `miniconda` or `pip` to install `sk-learn`, `subprocess`, `joblib`, `xlrd`, `xlwt` or `pip install -r requirements.txt` to install them.
+
+
+## Main Dependency Libraries
+
+PnpProbs: https://github.com/ytye/PnpProbs
+
+QuickProbs: https://github.com/refresh-bio/QuickProbs
+
+Scikit-Learn: https://scikit-learn.org/stable/ (recommend version: 0.21.3)
+
+Others: `subprocess`, `joblib`, `xlrd`, `xlwt` (or just `pip install -r requirements.txt`)
+
 
 ## Citation

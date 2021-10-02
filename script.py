@@ -35,7 +35,7 @@ def Run(prom, bench, file, path, i):
     os.system("%s %s/%s/%s  ./output/%s/%s" % (prom, path, bench + "/in", file, bench, file))
 
 def Compute(prom):
-    path = "./bench"
+    path = "./TEST"
     bench_list = os.listdir(path)
     tmp_bench = []
     total_time = []
@@ -51,12 +51,12 @@ def Compute(prom):
                     if file_list[fileidx][0:1] == ".":
                         continue
                     file_num += 1
-                    print("开始处理%d号文件: %s ..." % (fileidx, bench + "/in/" + file_list[fileidx]))
+                    print("Start constructing No. %d protein family: %s ..." % (fileidx, bench + "/in/" + file_list[fileidx]))
                     start = time.time()
                     Run(prom, bench, file_list[fileidx], path, i)
                     end = time.time()
                     tmp_time += (end - start)
-                    print("完成处理%d号文件！" % (fileidx))
+                    print("Finish constructing No. %d protein family." % (fileidx))
                 total_time.append(tmp_time / float(file_num))
 
     return tmp_bench, total_time
