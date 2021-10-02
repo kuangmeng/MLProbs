@@ -16,7 +16,7 @@ python MLProbs.py input.file.fasta [output.fasta.msa]
 ```
 
 ## Installation
-Please follow the `README` file in `./baseMSA/C_P_NP_Aln/` to compile our provided $\mathcal C_{P, NP}^{Aln}$ in `./baseMSA/` folder to `c_p_np_aln` and save it to `./baseMSA/C_P_NP_Aln/`.
+Please follow the `README` file in `./baseMSA/C_P_NP_Aln/` to compile our provided ![./images/classifier.png](`$\mathcal C_{P, NP}^{Aln}$`) in `./baseMSA/` folder to `c_p_np_aln` and save it to `./baseMSA/C_P_NP_Aln/`.
 
 Please follow the `quickprobs-manual.pdf` to compile our provided QuickProbs in `./realign/QuickProbs/` to `quickprobs` and save it to `./realign/QuickProbs/bin/`.
 
