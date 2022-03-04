@@ -35,3 +35,12 @@ Others: `subprocess`, `joblib`, `xlrd`, `xlwt` (or just `pip install -r requirem
 
 
 ## Citation
+```
+@article{9705141,  
+    author={Kuang, Mengmeng and Zhang, Yong and Lam, Tak-Wah and Ting, Hing-Fung},  
+    journal={IEEE/ACM Transactions on Computational Biology and Bioinformatics},   
+    title={MLProbs: A Data-Centric Pipeline for better Multiple Sequence Alignment},   
+    year={2022},  
+    doi={10.1109/TCBB.2022.3148382}
+}
+```
